@@ -24,4 +24,4 @@ feature = Feature{..} where
     initialItems = []
 
     symbol :: Object -> Char
-    symbol _ = ' '
+    symbol _ = '?'
