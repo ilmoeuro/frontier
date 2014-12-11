@@ -15,7 +15,6 @@ executable frontier
   ghc-options:     -Wall
   other-modules:   
                    Frontier.Feature,
-                   Frontier.Tag,
                    Frontier.Features.Building,
                    Frontier.Feature.Action
 

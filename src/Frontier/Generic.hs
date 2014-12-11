@@ -7,10 +7,6 @@ module Frontier.Generic
     ,use
     ,initialItems
     ,symbol
-    ,objectTag
-    ,tagObject
-    ,itemTag
-    ,tagItem
 
     ,Alike(..)
     ) where
@@ -35,14 +31,14 @@ data Item where
     FarmingItem     :: Farming.Item     -> Item
     
 -- Helper functions
-    
-supplyObjFeature :: (forall o i. Fe.Feature o i -> o -> a) -> Object -> a
-supplyObjFeature fn (BuildingObject o)      = fn Building.feature o
-supplyObjFeature fn (FarmingObject o)       = fn Farming.feature o
 
-supplyItemFeature :: (forall o i. Fe.Feature o i -> i -> a) -> Item -> a
-supplyItemFeature fn (BuildingItem i)        = fn Building.feature i
-supplyItemFeature fn (FarmingItem i)         = fn Farming.feature i
+delegateObject :: (forall o i. Fe.Feature o i -> o -> a) -> Object -> a
+delegateObject fn (BuildingObject o)      = fn Building.feature o
+delegateObject fn (FarmingObject o)       = fn Farming.feature o
+
+delegateItem :: (forall o i. Fe.Feature o i -> i -> a) -> Item -> a
+delegateItem fn (BuildingItem i)        = fn Building.feature i
+delegateItem fn (FarmingItem i)         = fn Farming.feature i
 
 fmapObjects :: Functor f 
             => (forall o i. Fe.Feature o i -> f o) 
@@ -82,19 +78,7 @@ initialItems :: [Item]
 initialItems = join $ fmapItems Fe.initialItems
     
 symbol :: Object -> Char
-symbol = supplyObjFeature Fe.symbol
-
-objectTag :: Object -> Maybe Fe.ObjectTag
-objectTag = supplyObjFeature Fe.objectTag
-
-tagObject :: Fe.ObjectTag -> [Object]
-tagObject tag = catMaybes $ fmapObjects $ \ftr -> Fe.tagObject ftr tag
-    
-itemTag :: Item -> Maybe Fe.ItemTag
-itemTag = supplyItemFeature Fe.itemTag
-
-tagItem :: Fe.ItemTag -> [Item]
-tagItem tag = catMaybes $ fmapItems $ \ftr -> Fe.tagItem ftr tag
+symbol = delegateObject Fe.symbol
     
 -- Meta functions
 

@@ -48,8 +48,3 @@ feature = Feature{..} where
     symbol :: Object -> Char
     symbol Wall = '#'
     symbol Tree = '^'
-
-    objectTag    = const Nothing
-    itemTag      = const Nothing
-    tagObject    = const Nothing
-    tagItem      = const Nothing
