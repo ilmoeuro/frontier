@@ -1,7 +1,6 @@
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE DeriveFunctor #-}
 {-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE GADTs #-}
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE TemplateHaskell #-}
 module Frontier.Feature.Action
@@ -31,57 +30,24 @@ import Control.Monad.Free.TH
 data Distance = Near | Far
 data Consuming = Consume | NoConsume
 
-data ActionF item object next where
+data ActionF item object next
     -- Item actions
-    TargetInventoryItem 
-        :: (item -> next)
-        -> ActionF item object next
-    YieldInventoryItem
-        :: item
-        -> next
-        -> ActionF item object next
-    ReplaceTargetItem
-        :: item
-        -> next
-        -> ActionF item object next
-    DestroyTargetItem
-        :: next
-        -> ActionF item object next
-    RequireItem
-        :: Consuming
-        -> item
-        -> next
-        -> ActionF item object next
-        
+    = TargetInventoryItem (item -> next)
+    | YieldInventoryItem item next
+    | ReplaceTargetItem item next
+    | DestroyTargetItem next
+    | RequireItem Consuming item next
     -- Object actions
-    TargetObject
-        :: Distance
-        -> (object -> next)
-        -> ActionF item object next
-    ReplaceTargetObject
-        :: object
-        -> next
-        -> ActionF item object next
-    DestroyTargetObject
-        :: next
-        -> ActionF item object next
-        
+    | TargetObject Distance (object -> next)
+    | ReplaceTargetObject object next
+    | DestroyTargetObject next
     -- Empty space actions
-    TargetEmptySpace
-        :: next
-        -> ActionF item object next
-        
+    | TargetEmptySpace next
     -- Other actions
-    FailAction
-        :: String
-        -> next
-        -> ActionF item object next
-    DisableAction
-        :: next
-        -> ActionF item object next
-        
+    | FailAction String next
+    | DisableAction next
     deriving (Functor)
-    
+
 type ActionM item object = Free (ActionF item object)
 
 makeFree ''ActionF
