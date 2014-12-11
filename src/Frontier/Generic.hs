@@ -76,7 +76,7 @@ use (FarmingItem i) = transform
         (Fe.use Farming.feature i)
 
 initialItems :: [Item]
-initialItems = join $ fmapI Fe.initialItems
+initialItems = concat $ fmapI Fe.initialItems
     
 symbol :: Object -> Char
 symbol = delegateO Fe.symbol
