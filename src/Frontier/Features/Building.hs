@@ -1,4 +1,3 @@
-{-# LANGUAGE GADTs #-}
 {-# LANGUAGE RecordWildCards #-}
 module Frontier.Features.Building
     (Object()
