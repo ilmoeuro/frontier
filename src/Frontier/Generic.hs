@@ -1,6 +1,5 @@
 {-# LANGUAGE GADTSyntax #-}
 {-# LANGUAGE RankNTypes #-}
-{-# LANGUAGE ScopedTypeVariables #-}
 module Frontier.Generic
     (Object()
     ,Item()
@@ -20,7 +19,7 @@ import Data.Maybe (catMaybes)
 import Control.Monad
 import Control.Applicative
 
-import Frontier.Feature.Action (ActionM, transformTypes)
+import Frontier.Feature.Action (ActionM, transform)
 import qualified Frontier.Feature as Fe
 import qualified Frontier.Features.Building as Building
 import qualified Frontier.Features.Farming as Farming
@@ -30,12 +29,10 @@ import qualified Frontier.Features.Farming as Farming
 data Object where
     BuildingObject  :: Building.Object  -> Object
     FarmingObject   :: Farming.Object   -> Object
-    deriving (Show)
     
 data Item where
     BuildingItem    :: Building.Item    -> Item
     FarmingItem     :: Farming.Item     -> Item
-    deriving (Show)
     
 -- Helper functions
     
@@ -66,13 +63,19 @@ fmapItems fn =
 -- The feature functions in generic form
 
 use :: Item -> ActionM Item Object ()
-use (BuildingItem i) = transformTypes
+-- Partial functions OK here because we only get out
+-- what we put in.
+use (BuildingItem i) = transform
         BuildingItem
+        (\(BuildingItem i') -> i')
         BuildingObject
+        (\(BuildingObject o') -> o')
         (Fe.use Building.feature i)
-use (FarmingItem i) = transformTypes
+use (FarmingItem i) = transform
         FarmingItem
+        (\(FarmingItem i') -> i')
         FarmingObject
+        (\(FarmingObject o') -> o')
         (Fe.use Farming.feature i)
 
 initialItems :: [Item]

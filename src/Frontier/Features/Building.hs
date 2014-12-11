@@ -32,11 +32,11 @@ feature = Feature{..} where
             when (item /= Lumber) disableAction
             replaceTargetItem Planks
     use Hammer = do
-            consumeItem Planks
+            requireItem Consume Planks
             targetEmptySpace
             replaceTargetObject Wall
     use Axe = do
-            object <- targetNearObject
+            object <- targetObject Near
             when (object /= Tree) disableAction
             yieldInventoryItem Lumber
             destroyTargetObject
