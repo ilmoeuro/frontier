@@ -6,7 +6,7 @@ module Frontier.Features.Farming
     ,feature
     ) where
     
-import Control.Monad
+-- import Control.Monad
 import Frontier.Feature
 import Frontier.Feature.Action
 

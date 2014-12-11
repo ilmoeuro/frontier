@@ -11,7 +11,6 @@ module Frontier.Generic
     ,Alike(..)
     ) where
 
-import Data.Maybe (catMaybes)
 import Control.Monad
 import Control.Applicative
 
@@ -32,26 +31,28 @@ data Item where
     
 -- Helper functions
 
-delegateObject :: (forall o i. Fe.Feature o i -> o -> a) -> Object -> a
-delegateObject fn (BuildingObject o)      = fn Building.feature o
-delegateObject fn (FarmingObject o)       = fn Farming.feature o
+delegateO :: (forall o i. Fe.Feature o i -> o -> a) -> Object -> a
+delegateO fn (BuildingObject o)      = fn Building.feature o
+delegateO fn (FarmingObject o)       = fn Farming.feature o
 
-delegateItem :: (forall o i. Fe.Feature o i -> i -> a) -> Item -> a
-delegateItem fn (BuildingItem i)        = fn Building.feature i
-delegateItem fn (FarmingItem i)         = fn Farming.feature i
+{-# ANN delegateI "HLint: ignore" #-} -- unused
+delegateI :: (forall o i. Fe.Feature o i -> i -> a) -> Item -> a
+delegateI fn (BuildingItem i)        = fn Building.feature i
+delegateI fn (FarmingItem i)         = fn Farming.feature i
 
-fmapObjects :: Functor f 
-            => (forall o i. Fe.Feature o i -> f o) 
-            -> [f Object]
-fmapObjects fn =
+{-# ANN fmapO "HLint: ignore" #-} -- unused
+fmapO :: Functor f 
+      => (forall o i. Fe.Feature o i -> f o) 
+      -> [f Object]
+fmapO fn =
     [BuildingObject     <$> fn Building.feature
     ,FarmingObject      <$> fn Farming.feature
     ]
 
-fmapItems :: Functor f 
-          => (forall o i. Fe.Feature o i -> f i) 
-          -> [f Item]
-fmapItems fn =
+fmapI :: Functor f 
+      => (forall o i. Fe.Feature o i -> f i) 
+      -> [f Item]
+fmapI fn =
     [BuildingItem       <$> fn Building.feature
     ,FarmingItem        <$> fn Farming.feature
     ]
@@ -75,10 +76,10 @@ use (FarmingItem i) = transform
         (Fe.use Farming.feature i)
 
 initialItems :: [Item]
-initialItems = join $ fmapItems Fe.initialItems
+initialItems = join $ fmapI Fe.initialItems
     
 symbol :: Object -> Char
-symbol = delegateObject Fe.symbol
+symbol = delegateO Fe.symbol
     
 -- Meta functions
 

@@ -1,4 +1,3 @@
-{-# LANGUAGE EmptyDataDecls #-}
 module Frontier.Feature
     (Feature(..)
     ) where
