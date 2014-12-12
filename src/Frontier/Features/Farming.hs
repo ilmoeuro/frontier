@@ -1,27 +1,31 @@
+{-# LANGUAGE EmptyDataDecls  #-}
 {-# LANGUAGE RecordWildCards #-}
-{-# LANGUAGE EmptyDataDecls #-}
 module Frontier.Features.Farming
     (Object()
     ,Item()
     ,feature
     ) where
-    
+
 -- import Control.Monad
 import Frontier.Feature
 import Frontier.Feature.Action
 
 data Object
+    = PlayerCharacter
 
 data Item
 
-feature :: Feature Object Item
-feature = Feature{..} where
+feature :: Feature Item Object
+feature = Feature{..} where
 
-    use :: Item -> ActionM Item Object ()
-    use _ = disableAction
+    action :: Char -> ActionM Item Object ()
+    action = const disableAction
 
     initialItems :: [Item]
     initialItems = []
 
     symbol :: Object -> Char
     symbol _ = '?'
+
+    initPlayerCharacter :: Object
+    initPlayerCharacter = PlayerCharacter

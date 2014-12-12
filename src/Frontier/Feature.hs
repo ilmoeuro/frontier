@@ -1,11 +1,12 @@
 module Frontier.Feature
     (Feature(..)
     ) where
-    
+
 import Frontier.Feature.Action (ActionM)
 
-data Feature object item = Feature
+data Feature item object = Feature
     {initialItems           :: [item]
     ,symbol                 :: object -> Char
-    ,use                    :: item -> ActionM item object ()
+    ,action                 :: Char -> ActionM item object ()
+    ,initPlayerCharacter    :: object
     }
