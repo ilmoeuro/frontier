@@ -52,7 +52,8 @@ feature = Feature {..} where
             when (object /= Tree) disableAction
             yieldInventoryItem Lumber
             destroyTargetObject
-    action _ = disableAction
+    action _ =
+            disableAction
 
     initPlayerCharacter :: Thing Object
     initPlayerCharacter = PlayerCharacter
