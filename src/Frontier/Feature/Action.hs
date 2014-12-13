@@ -29,24 +29,25 @@ module Frontier.Feature.Action
 
 import Control.Monad.Free
 import Control.Monad.Free.TH
+import Frontier.Feature.Qualifier
 
 data Distance = Near | Far
 data Consuming = Consume | NoConsume
 data Direction = N | NE | E | SE | S | SW | W | NW
 
-data ActionF item object next
+data ActionF a next
     -- Item actions
-    = TargetInventoryItem (item -> next)
-    | YieldInventoryItem item next
-    | ReplaceTargetItem item next
+    = TargetInventoryItem (a Item -> next)
+    | YieldInventoryItem (a Item) next
+    | ReplaceTargetItem (a Item) next
     | DestroyTargetItem next
-    | RequireItem Consuming item next
+    | RequireItem Consuming (a Item) next
     -- Object actions
-    | Me (object -> next)
-    | TargetObject Distance (object -> next)
-    | ReplaceTargetObject object next
+    | Me (a Object -> next)
+    | TargetObject Distance (a Object -> next)
+    | ReplaceTargetObject (a Object) next
     | DestroyTargetObject next
-    | Move Direction object (Bool -> next)
+    | Move Direction (a Object) (Bool -> next)
     -- Empty space actions
     | TargetEmptySpace next
     -- Other actions
@@ -54,41 +55,39 @@ data ActionF item object next
     | DisableAction next
     deriving (Functor)
 
-type ActionM item object = Free (ActionF item object)
+type ActionM a = Free (ActionF a)
 
 makeFree ''ActionF
 
 -- TODO: DRY
-transform :: forall i i' o o' a.
-                  (i -> i')
-               -> (i' -> i)
-               -> (o -> o')
-               -> (o' -> o)
-               -> ActionM i o a
-               -> ActionM i' o' a
-transform i2i' i'2i o2o' o'2o = iterM run
+transform :: forall a a' c.
+                  (forall b. a b -> a' b)
+               -> (forall b. a' b -> a b)
+               -> ActionM a c
+               -> ActionM a' c
+transform a2a' a'2a = iterM run
     where
-        run :: ActionF i o (ActionM i' o' a) -> ActionM i' o' a
+        run :: ActionF a (ActionM a' c) -> ActionM a' c
         run (TargetInventoryItem next) =
-            i'2i `fmap` targetInventoryItem >>= next
+            a'2a `fmap` targetInventoryItem >>= next
         run (YieldInventoryItem item next) =
-            yieldInventoryItem (i2i' item) >> next
+            yieldInventoryItem (a2a' item) >> next
         run (ReplaceTargetItem item next) =
-            replaceTargetItem (i2i' item) >> next
+            replaceTargetItem (a2a' item) >> next
         run (DestroyTargetItem next) =
             destroyTargetItem >> next
         run (RequireItem consuming item next) =
-            requireItem consuming (i2i' item) >> next
+            requireItem consuming (a2a' item) >> next
         run (Me next) =
-            o'2o `fmap` me >>= next
+            a'2a `fmap` me >>= next
         run (TargetObject distance next) =
-            o'2o `fmap` targetObject distance >>= next
+            a'2a `fmap` targetObject distance >>= next
         run (ReplaceTargetObject obj next) =
-            replaceTargetObject (o2o' obj) >> next
+            replaceTargetObject (a2a' obj) >> next
         run (DestroyTargetObject next) =
             destroyTargetObject >> next
         run (Move dir obj next) =
-            move dir (o2o' obj) >>= next
+            move dir (a2a' obj) >>= next
         run (TargetEmptySpace next) =
             targetEmptySpace >> next
         run (FailAction msg next) =

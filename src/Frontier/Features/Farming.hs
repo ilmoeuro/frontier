@@ -1,31 +1,32 @@
-{-# LANGUAGE EmptyDataDecls  #-}
-{-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE GADTs              #-}
+{-# LANGUAGE RecordWildCards    #-}
+{-# LANGUAGE StandaloneDeriving #-}
 module Frontier.Features.Farming
-    (Object()
-    ,Item()
+    (Thing()
     ,feature
     ) where
 
--- import Control.Monad
 import Frontier.Feature
 import Frontier.Feature.Action
+import Frontier.Feature.Qualifier
 
-data Object
-    = PlayerCharacter
+data Thing a where
+    PlayerCharacter     :: Thing Object
 
-data Item
+deriving instance Show (Thing a)
+deriving instance Eq (Thing a)
 
-feature :: Feature Item Object
-feature = Feature{..} where
+feature :: Feature Thing
+feature = Feature {..} where
 
-    action :: Char -> ActionM Item Object ()
-    action = const disableAction
+    initItems :: [Thing Item]
+    initItems = []
 
-    initialItems :: [Item]
-    initialItems = []
+    symbol :: Thing Object -> Char
+    symbol _                = '?'
 
-    symbol :: Object -> Char
-    symbol _ = '?'
+    action :: Char -> ActionM Thing ()
+    action _ = disableAction
 
-    initPlayerCharacter :: Object
+    initPlayerCharacter :: Thing Object
     initPlayerCharacter = PlayerCharacter

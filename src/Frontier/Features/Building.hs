@@ -1,40 +1,41 @@
-{-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE GADTs              #-}
+{-# LANGUAGE RecordWildCards    #-}
+{-# LANGUAGE StandaloneDeriving #-}
 module Frontier.Features.Building
-    (Object()
-    ,Item()
+    (Thing()
     ,feature
     ) where
 
 import Control.Monad
 import Frontier.Feature
 import Frontier.Feature.Action
+import Frontier.Feature.Qualifier
 
-data Object
-    = PlayerCharacter
-    | Wall
-    | Tree
-    deriving (Eq, Show)
+data Thing a where
+    PlayerCharacter     :: Thing Object
+    Wall                :: Thing Object
+    Tree                :: Thing Object
+    Lumber              :: Thing Item
+    Planks              :: Thing Item
+    Saw                 :: Thing Item
+    Hammer              :: Thing Item
+    Axe                 :: Thing Item
 
-data Item
-    = Lumber
-    | Planks
-    | Saw
-    | Hammer
-    | Axe
-    deriving (Eq, Show)
+deriving instance Show (Thing a)
+deriving instance Eq (Thing a)
 
-feature :: Feature Item Object
+feature :: Feature Thing
 feature = Feature {..} where
 
-    initialItems :: [Item]
-    initialItems = [Saw, Hammer, Axe]
+    initItems :: [Thing Item]
+    initItems = [Saw, Hammer, Axe]
 
-    symbol :: Object -> Char
+    symbol :: Thing Object -> Char
     symbol Wall             = '#'
     symbol Tree             = '^'
     symbol PlayerCharacter  = '@'
 
-    action :: Char -> ActionM Item Object ()
+    action :: Char -> ActionM Thing ()
     action 's' = do
             requireItem NoConsume Saw
             item <- targetInventoryItem
@@ -53,5 +54,5 @@ feature = Feature {..} where
             destroyTargetObject
     action _ = disableAction
 
-    initPlayerCharacter :: Object
+    initPlayerCharacter :: Thing Object
     initPlayerCharacter = PlayerCharacter

@@ -19,6 +19,7 @@ executable frontier
                    Frontier.Features.Building,
                    Frontier.Features.Farming,
                    Frontier.Generic,
-                   Frontier.World
+                   Frontier.World,
+                   Frontier.Feature.Qualifier
 
 

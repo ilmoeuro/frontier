@@ -3,10 +3,11 @@ module Frontier.Feature
     ) where
 
 import Frontier.Feature.Action (ActionM)
+import Frontier.Feature.Qualifier
 
-data Feature item object = Feature
-    {initialItems           :: [item]
-    ,symbol                 :: object -> Char
-    ,action                 :: Char -> ActionM item object ()
-    ,initPlayerCharacter    :: object
+data Feature a = Feature
+    {initItems              :: [a Item]
+    ,symbol                 :: a Object -> Char
+    ,action                 :: Char -> ActionM a ()
+    ,initPlayerCharacter    :: a Object
     }
