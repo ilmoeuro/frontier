@@ -7,6 +7,7 @@ module Frontier.Generic
     ,action
     ,initialItems
     ,symbol
+    ,initPlayerCharacter
 
     ,Alike(..)
     ) where
@@ -37,6 +38,19 @@ delegateO fn (FarmingObject o)       = fn Farming.feature o
 delegateI :: (forall i o. Fe.Feature i o -> i -> a) -> Item -> a
 delegateI fn (BuildingItem i)        = fn Building.feature i
 delegateI fn (FarmingItem i)         = fn Farming.feature i
+    
+getO :: (forall i o. Fe.Feature i o -> o) -> [Object]
+getO fn =
+    [BuildingObject     $ fn Building.feature
+    ,FarmingObject      $ fn Farming.feature
+    ]
+
+{-# ANN getI "HLint: ignore" #-} -- unused
+getI :: (forall i o. Fe.Feature i o -> i) -> [Item]
+getI fn =
+    [BuildingItem       $ fn Building.feature
+    ,FarmingItem        $ fn Farming.feature
+    ]
 
 {-# ANN fmapO "HLint: ignore" #-} -- unused
 fmapO :: Functor f 
@@ -58,7 +72,7 @@ fmapI fn =
 delegateA :: (forall i o. Fe.Feature i o -> ActionM i o ())
           -> [ActionM Item Object ()]
 -- Partial functions OK here because we only get out
--- what we put in.
+-- what we put in; prisms could maybe suit better
 delegateA act =
     [transform
         BuildingItem
@@ -84,6 +98,9 @@ initialItems = concat $ fmapI Fe.initialItems
     
 symbol :: Object -> Char
 symbol = delegateO Fe.symbol
+
+initPlayerCharacter :: [Object]
+initPlayerCharacter = getO Fe.initPlayerCharacter
     
 -- Meta functions
 

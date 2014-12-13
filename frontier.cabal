@@ -18,6 +18,7 @@ executable frontier
                    Frontier.Feature.Action,
                    Frontier.Features.Building,
                    Frontier.Features.Farming,
-                   Frontier.Generic
+                   Frontier.Generic,
+                   Frontier.World
 
 
