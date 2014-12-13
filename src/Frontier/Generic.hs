@@ -1,7 +1,9 @@
 {-# LANGUAGE GADTSyntax #-}
 {-# LANGUAGE RankNTypes #-}
+{-# LANGUAGE RecordWildCards #-}
 module Frontier.Generic
     (Generic()
+    ,GenericAction()
 
     ,FeatureTag(..)
     ,featureTag
@@ -10,6 +12,8 @@ module Frontier.Generic
     ,symbol
     ,action
     ,initPlayerCharacter
+    
+    ,runAction
     ) where
 
 import Control.Applicative
@@ -33,18 +37,6 @@ data GenericAction a = GenericAction
     ,farmingAction  :: ActionM Farming.Thing a
     ,movingAction   :: ActionM Moving.Thing a
     }
-
--- Meta functions
-
-data FeatureTag
-    = BuildingTag
-    | FarmingTag
-    | MovingTag
-    
-featureTag :: Generic a -> FeatureTag
-featureTag (BuildingThing _)    = BuildingTag
-featureTag (FarmingThing _)     = FarmingTag
-featureTag (MovingThing _)      = MovingTag
     
 -- Helper functions
 
@@ -71,9 +63,9 @@ contravariant fn (MovingThing x)    = fn Moving.feature     x
 
 covariantAction :: (forall a. Feature a -> ActionM a b) -> GenericAction b
 covariantAction f = GenericAction
-    {buildingAction = f Building.feature
-    ,farmingAction = f Farming.feature
-    ,movingAction = f Moving.feature
+    {buildingAction     = f Building.feature
+    ,farmingAction      = f Farming.feature
+    ,movingAction       = f Moving.feature
     }
 
 -- The feature functions in generic form
@@ -89,3 +81,37 @@ action c = covariantAction $ flip Fe.action c
 
 initPlayerCharacter :: [Generic Object]
 initPlayerCharacter = covariant Fe.initPlayerCharacter
+
+-- Meta functions
+
+-- TODO: DRY; unwrapXXX are prisms
+runAction :: (forall a. 
+                    ActionM a b ->
+                    (forall d. Generic d -> Maybe (a d)) ->
+                    c)
+              -> GenericAction b 
+              -> [c]
+runAction f GenericAction{..} =
+    [f buildingAction unwrapBuilding
+    ,f farmingAction unwrapFarming
+    ,f movingAction unwrapMoving
+    ]
+    where
+        unwrapBuilding  (BuildingThing a)   = Just a
+        unwrapBuilding  _                   = Nothing
+        unwrapFarming   (FarmingThing a)    = Just a
+        unwrapFarming   _                   = Nothing
+        unwrapMoving    (MovingThing a)     = Just a
+        unwrapMoving    _                   = Nothing
+
+-- Tagging
+
+data FeatureTag
+    = BuildingTag
+    | FarmingTag
+    | MovingTag
+    
+featureTag :: Generic a -> FeatureTag
+featureTag (BuildingThing _)    = BuildingTag
+featureTag (FarmingThing _)     = FarmingTag
+featureTag (MovingThing _)      = MovingTag
