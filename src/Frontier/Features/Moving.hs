@@ -30,7 +30,7 @@ feature = Feature {..} where
     action 'j' = void $ me >>= move N
     action 'k' = void $ me >>= move S
     action 'l' = void $ me >>= move E
-    action _   = disableAction
+    action _   = disabled
 
     initPlayerCharacter :: Thing Object
     initPlayerCharacter = PlayerCharacter

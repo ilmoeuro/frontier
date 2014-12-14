@@ -23,10 +23,10 @@ feature = Feature {..} where
     initItems = []
 
     symbol :: Thing Object -> Char
-    symbol _                = '?'
+    symbol _ = '?'
 
     action :: Char -> ActionM Thing ()
-    action _ = disableAction
+    action _ = disabled
 
     initPlayerCharacter :: Thing Object
     initPlayerCharacter = PlayerCharacter

@@ -39,7 +39,7 @@ feature = Feature {..} where
     action 's' = do
             requireItem NoConsume Saw
             item <- targetInventoryItem
-            when (item /= Lumber) disableAction
+            guard (item == Lumber)
             replaceTargetItem Planks
     action 'b' = do
             requireItem NoConsume Hammer
@@ -49,11 +49,11 @@ feature = Feature {..} where
     action 'c' = do
             requireItem NoConsume Axe
             object <- targetObject Near
-            when (object /= Tree) disableAction
+            guard (object == Tree)
             yieldInventoryItem Lumber
             destroyTargetObject
     action _ =
-            disableAction
+            disabled
 
     initPlayerCharacter :: Thing Object
     initPlayerCharacter = PlayerCharacter

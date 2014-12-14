@@ -21,12 +21,13 @@ module Frontier.Feature.Action
     ,destroyTargetObject
     ,move
     ,targetEmptySpace
-    ,failAction
-    ,disableAction
+    -- Pseudo actions
+    ,disabled
     ) where
 
-import Control.Monad.Free
+import Control.Monad
 import Control.Monad.Free.TH
+import Control.Monad.Trans.Free
 import Frontier.Feature.Qualifier
 
 data Distance = Near | Far
@@ -48,11 +49,11 @@ data ActionF a next
     | Move Direction (a Object) (Bool -> next)
     -- Empty space actions
     | TargetEmptySpace next
-    -- Other actions
-    | FailAction String next
-    | DisableAction next
     deriving (Functor)
 
-type ActionM a = Free (ActionF a)
+type ActionM a = FreeT (ActionF a) Maybe
 
 makeFree ''ActionF
+
+disabled :: ActionM a b
+disabled = mzero
