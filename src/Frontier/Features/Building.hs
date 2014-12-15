@@ -12,6 +12,10 @@ import Frontier.Feature.Action
 import Frontier.Feature.Qualifier
 
 data Specific a where
+    NoOpAction          :: Specific (Action ())
+    SawAction           :: Specific (Action ())
+    BuildAction         :: Specific (Action ())
+    ChopAction          :: Specific (Action ())
     PlayerCharacter     :: Specific Object
     Wall                :: Specific Object
     Tree                :: Specific Object
@@ -35,28 +39,33 @@ feature = Feature {..} where
     symbol Tree             = '^'
     symbol PlayerCharacter  = '@'
 
-    command :: Char -> ActionM Specific ()
-    command 's' = do
+    run :: Specific (Action a) -> ActionM Specific a
+    run SawAction = do
             shortDescription "Saw lumber"
             requireItem NoConsume Saw
             item <- targetInventoryItem
             guard (item == Lumber)
             replaceTargetItem Planks
-    command 'b' = do
+    run BuildAction = do
             shortDescription "Build a wall"
             requireItem NoConsume Hammer
             requireItem Consume Planks
             targetEmptySpace
             replaceTargetObject Wall
-    command 'c' = do
+    run ChopAction = do
             shortDescription "Chop down trees"
             requireItem NoConsume Axe
             object <- targetObject Near
             guard (object == Tree)
             yieldInventoryItem Lumber
             destroyTargetObject
-    command _ =
-            disabled
+    run NoOpAction = disabled
+
+    command :: Char -> Specific (Action ())
+    command 's' = SawAction
+    command 'b' = BuildAction
+    command 'c' = ChopAction
+    command _   = NoOpAction
 
     initPlayerCharacter :: Specific Object
     initPlayerCharacter = PlayerCharacter

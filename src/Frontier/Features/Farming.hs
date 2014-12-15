@@ -11,10 +11,11 @@ import Frontier.Feature.Action
 import Frontier.Feature.Qualifier
 
 data Specific a where
+    NoOpAction          :: Specific (Action ())
     PlayerCharacter     :: Specific Object
 
-deriving instance Show (Specific a)
 deriving instance Eq (Specific a)
+deriving instance Show (Specific a)
 
 feature :: Feature Specific
 feature = Feature {..} where
@@ -25,11 +26,14 @@ feature = Feature {..} where
     symbol :: Specific Object -> Char
     symbol _ = '?'
 
-    command :: Char -> ActionM Specific ()
-    command _ = disabled
+    command :: Char -> Specific (Action ())
+    command _ = NoOpAction
 
     initPlayerCharacter :: Specific Object
     initPlayerCharacter = PlayerCharacter
 
     eq :: Specific a -> Specific a -> Bool
     eq = (==)
+
+    run :: Specific (Action b) -> ActionM Specific b
+    run NoOpAction = disabled

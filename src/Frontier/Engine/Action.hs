@@ -7,7 +7,7 @@ module Frontier.Engine.Action
     ) where
 
 import Control.Arrow
-import Control.Lens
+import Control.Lens hiding (Action)
 import Control.Monad
 import Control.Monad.Trans.Free
 import Data.Maybe
@@ -30,14 +30,15 @@ data ActionCtx' a = ActionCtx'
     ,this'              :: Maybe (a Object)
     }
 
-actionEnabled :: ActionCtx -> (forall a b. ActionM a b) -> Bool
+actionEnabled :: ActionCtx -> Generic (Action ()) -> Bool
 actionEnabled ActionCtx{..} action =
-    or $ withFeatures $ \ftr pr ->
+    or $ withFeatures $ \ftr@Feature{..} pr ->
         let extract = mapMaybe (^? pr)
             neighbors' = map (second (^? pr)) neighbors
             inventory' = extract inventory
             this' = listToMaybe (extract this)
-        in actionEnabled' ftr ActionCtx'{..} action
+            action' = run `fmap` (action ^? pr)
+        in maybe False (actionEnabled' ftr ActionCtx'{..}) action'
 
 actionEnabled' :: Feature a -> ActionCtx' a -> ActionM a b -> Bool
 actionEnabled' Feature{..} ActionCtx'{..} action =
