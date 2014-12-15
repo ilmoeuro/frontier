@@ -37,16 +37,19 @@ feature = Feature {..} where
 
     command :: Char -> ActionM Thing ()
     command 's' = do
+            shortDescription "Saw lumber"
             requireItem NoConsume Saw
             item <- targetInventoryItem
             guard (item == Lumber)
             replaceTargetItem Planks
     command 'b' = do
+            shortDescription "Build a wall"
             requireItem NoConsume Hammer
             requireItem Consume Planks
             targetEmptySpace
             replaceTargetObject Wall
     command 'c' = do
+            shortDescription "Chop down trees"
             requireItem NoConsume Axe
             object <- targetObject Near
             guard (object == Tree)

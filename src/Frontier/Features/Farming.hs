@@ -30,3 +30,6 @@ feature = Feature {..} where
 
     initPlayerCharacter :: Thing Object
     initPlayerCharacter = PlayerCharacter
+
+    eq :: Thing a -> Thing a -> Bool
+    eq = (==)

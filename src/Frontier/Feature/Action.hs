@@ -10,6 +10,7 @@ module Frontier.Feature.Action
     ,Consuming(..)
     ,Direction(..)
     -- ActionM actions
+    ,shortDescription
     ,targetInventoryItem
     ,yieldInventoryItem
     ,replaceTargetItem
@@ -31,13 +32,17 @@ import Control.Monad.Trans.Free
 import Frontier.Feature.Qualifier
 
 data Distance = Near | Far
+    deriving (Eq, Enum, Bounded, Show)
 data Consuming = Consume | NoConsume
+    deriving (Eq, Enum, Bounded, Show)
 data Direction = N | NE | E | SE | S | SW | W | NW
-    deriving (Eq, Enum, Bounded)
+    deriving (Eq, Enum, Bounded, Show)
 
 data ActionF a next
+    -- Meta information
+    = ShortDescription String next
     -- Item actions
-    = TargetInventoryItem (a Item -> next)
+    | TargetInventoryItem (a Item -> next)
     | YieldInventoryItem (a Item) next
     | ReplaceTargetItem (a Item) next
     | DestroyTargetItem next
