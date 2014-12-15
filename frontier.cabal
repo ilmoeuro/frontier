@@ -17,12 +17,11 @@ executable frontier
   ghc-options:     -Wall
   other-modules:   
                    Frontier.Feature,
+                   Frontier.Feature.Qualifier,
                    Frontier.Feature.Action,
+                   Frontier.Features,
                    Frontier.Features.Building,
                    Frontier.Features.Farming,
-                   Frontier.World,
-                   Frontier.Feature.Qualifier,
                    Frontier.Features.Moving,
-                   Frontier.Features
-
-
+                   Frontier.World,
+                   Frontier.Extra

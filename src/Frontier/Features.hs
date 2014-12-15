@@ -11,6 +11,7 @@ module Frontier.Features
 
 import Data.Maybe
 import Control.Lens
+import Frontier.Extra (singleOr)
 import Frontier.Feature (Feature)
 import qualified Frontier.Features.Building as Building
 import qualified Frontier.Features.Farming as Farming
@@ -43,8 +44,7 @@ contravariant :: (forall a. Feature a -> a b -> c)
 contravariant f x =
     -- OK to use here because one module always
     -- knows how to handle an object
-    fromMaybe (error "error in contravariant: module dispatch failed")
-    . listToMaybe
+    (`singleOr` error "error in contravariant: module dispatch failed")
     . catMaybes
     $ withFeatures 
     $ \ftr pr -> x ^? pr <&> f ftr
