@@ -8,6 +8,6 @@ import Frontier.Feature.Qualifier
 data Feature a = Feature
     {initItems              :: [a Item]
     ,symbol                 :: a Object -> Char
-    ,action                 :: Char -> ActionM a ()
+    ,command                :: Char -> ActionM a ()
     ,initPlayerCharacter    :: a Object
     }

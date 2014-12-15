@@ -25,12 +25,12 @@ feature = Feature {..} where
     symbol :: Thing Object -> Char
     symbol PlayerCharacter = '@'
 
-    action :: Char -> ActionM Thing ()
-    action 'h' = void $ me >>= move W
-    action 'j' = void $ me >>= move N
-    action 'k' = void $ me >>= move S
-    action 'l' = void $ me >>= move E
-    action _   = disabled
+    command :: Char -> ActionM Thing ()
+    command 'h' = void $ me >>= move W
+    command 'j' = void $ me >>= move N
+    command 'k' = void $ me >>= move S
+    command 'l' = void $ me >>= move E
+    command _   = disabled
 
     initPlayerCharacter :: Thing Object
     initPlayerCharacter = PlayerCharacter

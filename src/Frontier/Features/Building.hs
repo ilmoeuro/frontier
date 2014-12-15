@@ -35,24 +35,24 @@ feature = Feature {..} where
     symbol Tree             = '^'
     symbol PlayerCharacter  = '@'
 
-    action :: Char -> ActionM Thing ()
-    action 's' = do
+    command :: Char -> ActionM Thing ()
+    command 's' = do
             requireItem NoConsume Saw
             item <- targetInventoryItem
             guard (item == Lumber)
             replaceTargetItem Planks
-    action 'b' = do
+    command 'b' = do
             requireItem NoConsume Hammer
             requireItem Consume Planks
             targetEmptySpace
             replaceTargetObject Wall
-    action 'c' = do
+    command 'c' = do
             requireItem NoConsume Axe
             object <- targetObject Near
             guard (object == Tree)
             yieldInventoryItem Lumber
             destroyTargetObject
-    action _ =
+    command _ =
             disabled
 
     initPlayerCharacter :: Thing Object

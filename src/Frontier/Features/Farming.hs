@@ -25,8 +25,8 @@ feature = Feature {..} where
     symbol :: Thing Object -> Char
     symbol _ = '?'
 
-    action :: Char -> ActionM Thing ()
-    action _ = disabled
+    command :: Char -> ActionM Thing ()
+    command _ = disabled
 
     initPlayerCharacter :: Thing Object
     initPlayerCharacter = PlayerCharacter
