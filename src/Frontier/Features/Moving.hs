@@ -5,6 +5,7 @@ module Frontier.Features.Moving
     (Thing()
     ,feature) where
 
+import Control.Monad
 import Frontier.Feature
 import Frontier.Feature.Action
 import Frontier.Feature.Qualifier
@@ -25,10 +26,8 @@ feature = Feature {..} where
     symbol PlayerCharacter = '@'
 
     move' :: Direction -> ActionM Thing ()
-    move' dir = do
-        shortDescription $ "Move " ++ show dir
-        _ <- me >>= move dir
-        return ()
+    move' dir =
+        void $ shortDescription ("Move " ++ show dir) >> me >>= move dir
 
     command :: Char -> ActionM Thing ()
     command 'h' = move' W

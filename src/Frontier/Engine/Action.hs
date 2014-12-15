@@ -42,6 +42,8 @@ actionEnabled ActionCtx{..} action =
 actionEnabled' :: Feature a -> ActionCtx' a -> ActionM a b -> Bool
 actionEnabled' Feature{..} ActionCtx'{..} action =
     isJust . flip iterT action $ \case
+        (ShortDescription _ next) ->
+            next
         (TargetInventoryItem next) ->
             msum $ map next inventory'
         (YieldInventoryItem _ next) ->
