@@ -1,3 +1,4 @@
+{-# LANGUAGE RankNTypes #-}
 module Frontier.Feature
     (Feature(..)
     ) where
@@ -10,4 +11,5 @@ data Feature a = Feature
     ,symbol                 :: a Object -> Char
     ,command                :: Char -> ActionM a ()
     ,initPlayerCharacter    :: a Object
+    ,eq                     :: forall b. a b -> a b -> Bool
     }

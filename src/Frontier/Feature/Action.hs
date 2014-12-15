@@ -33,6 +33,7 @@ import Frontier.Feature.Qualifier
 data Distance = Near | Far
 data Consuming = Consume | NoConsume
 data Direction = N | NE | E | SE | S | SW | W | NW
+    deriving (Eq, Enum, Bounded)
 
 data ActionF a next
     -- Item actions

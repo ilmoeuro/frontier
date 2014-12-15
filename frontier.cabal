@@ -24,4 +24,5 @@ executable frontier
                    Frontier.Features.Farming,
                    Frontier.Features.Moving,
                    Frontier.World,
-                   Frontier.Extra
+                   Frontier.Extra,
+                   Frontier.Engine.Action
