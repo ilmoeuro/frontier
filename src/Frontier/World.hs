@@ -12,7 +12,7 @@ import Frontier.Features
 data World = World
     {width :: Int
     ,height :: Int
-    ,cells :: [((Int, Int), Thing Object)]
+    ,cells :: [((Int, Int), Generic Object)]
     }
 
 instance Show World where

@@ -3,7 +3,7 @@
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE TemplateHaskell #-}
 module Frontier.Features
-    (Thing()
+    (Generic()
     ,withFeatures
     ,covariant
     ,contravariant
@@ -17,29 +17,29 @@ import qualified Frontier.Features.Building as Building
 import qualified Frontier.Features.Farming as Farming
 import qualified Frontier.Features.Moving as Moving
 
-data Thing a where
-    BuildingThing   :: Building.Thing a         -> Thing a
-    FarmingThing    :: Farming.Thing a          -> Thing a
-    MovingThing     :: Moving.Thing a           -> Thing a
+data Generic a where
+    BuildingSpecific    :: Building.Specific a      -> Generic a
+    FarmingSpecific     :: Farming.Specific a       -> Generic a
+    MovingSpecific      :: Moving.Specific a        -> Generic a
     
-makePrisms ''Thing
+makePrisms ''Generic
 
 withFeatures :: (forall a. Feature a
-                -> (forall b. Prism' (Thing b) (a b))
+                -> (forall b. Prism' (Generic b) (a b))
                 -> c)
              -> [c]
 withFeatures f =
-    [f Building.feature     _BuildingThing
-    ,f Farming.feature      _FarmingThing
-    ,f Moving.feature       _MovingThing
+    [f Building.feature     _BuildingSpecific
+    ,f Farming.feature      _FarmingSpecific
+    ,f Moving.feature       _MovingSpecific
     ]
 
 covariant :: (forall a. Feature a -> a c)
-          -> [Thing c]
+          -> [Generic c]
 covariant f = withFeatures $ \ftr pr -> f ftr ^. re pr
     
 contravariant :: (forall a. Feature a -> a b -> c)
-              -> Thing b
+              -> Generic b
               -> c
 contravariant f x =
     -- OK to use here because one module always

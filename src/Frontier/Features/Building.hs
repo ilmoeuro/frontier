@@ -2,7 +2,7 @@
 {-# LANGUAGE RecordWildCards    #-}
 {-# LANGUAGE StandaloneDeriving #-}
 module Frontier.Features.Building
-    (Thing()
+    (Specific()
     ,feature
     ) where
 
@@ -11,31 +11,31 @@ import Frontier.Feature
 import Frontier.Feature.Action
 import Frontier.Feature.Qualifier
 
-data Thing a where
-    PlayerCharacter     :: Thing Object
-    Wall                :: Thing Object
-    Tree                :: Thing Object
-    Lumber              :: Thing Item
-    Planks              :: Thing Item
-    Saw                 :: Thing Item
-    Hammer              :: Thing Item
-    Axe                 :: Thing Item
+data Specific a where
+    PlayerCharacter     :: Specific Object
+    Wall                :: Specific Object
+    Tree                :: Specific Object
+    Lumber              :: Specific Item
+    Planks              :: Specific Item
+    Saw                 :: Specific Item
+    Hammer              :: Specific Item
+    Axe                 :: Specific Item
 
-deriving instance Show (Thing a)
-deriving instance Eq (Thing a)
+deriving instance Show (Specific a)
+deriving instance Eq (Specific a)
 
-feature :: Feature Thing
+feature :: Feature Specific
 feature = Feature {..} where
 
-    initItems :: [Thing Item]
+    initItems :: [Specific Item]
     initItems = [Saw, Hammer, Axe]
 
-    symbol :: Thing Object -> Char
+    symbol :: Specific Object -> Char
     symbol Wall             = '#'
     symbol Tree             = '^'
     symbol PlayerCharacter  = '@'
 
-    command :: Char -> ActionM Thing ()
+    command :: Char -> ActionM Specific ()
     command 's' = do
             shortDescription "Saw lumber"
             requireItem NoConsume Saw
@@ -58,8 +58,8 @@ feature = Feature {..} where
     command _ =
             disabled
 
-    initPlayerCharacter :: Thing Object
+    initPlayerCharacter :: Specific Object
     initPlayerCharacter = PlayerCharacter
 
-    eq :: Thing a -> Thing a -> Bool
+    eq :: Specific a -> Specific a -> Bool
     eq = (==)

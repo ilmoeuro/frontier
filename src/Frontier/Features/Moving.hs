@@ -2,7 +2,7 @@
 {-# LANGUAGE RecordWildCards    #-}
 {-# LANGUAGE StandaloneDeriving #-}
 module Frontier.Features.Moving
-    (Thing()
+    (Specific()
     ,feature) where
 
 import Control.Monad
@@ -10,34 +10,34 @@ import Frontier.Feature
 import Frontier.Feature.Action
 import Frontier.Feature.Qualifier
 
-data Thing a where
-    PlayerCharacter     :: Thing Object
+data Specific a where
+    PlayerCharacter     :: Specific Object
 
-deriving instance Show (Thing a)
-deriving instance Eq (Thing a)
+deriving instance Show (Specific a)
+deriving instance Eq (Specific a)
 
-feature :: Feature Thing
+feature :: Feature Specific
 feature = Feature {..} where
 
-    initItems :: [Thing Item]
+    initItems :: [Specific Item]
     initItems = []
 
-    symbol :: Thing Object -> Char
+    symbol :: Specific Object -> Char
     symbol PlayerCharacter = '@'
 
-    move' :: Direction -> ActionM Thing ()
+    move' :: Direction -> ActionM Specific ()
     move' dir =
         void $ shortDescription ("Move " ++ show dir) >> me >>= move dir
 
-    command :: Char -> ActionM Thing ()
+    command :: Char -> ActionM Specific ()
     command 'h' = move' W
     command 'j' = move' N
     command 'k' = move' S
     command 'l' = move' E
     command _   = disabled
 
-    initPlayerCharacter :: Thing Object
+    initPlayerCharacter :: Specific Object
     initPlayerCharacter = PlayerCharacter
 
-    eq :: Thing a -> Thing a -> Bool
+    eq :: Specific a -> Specific a -> Bool
     eq = (==)

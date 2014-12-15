@@ -18,9 +18,9 @@ import Frontier.Features
 
 -- Non-prime data & functions are run outside a feature
 data ActionCtx = ActionCtx
-    {neighbors          :: [(Direction, Thing Object)]
-    ,inventory          :: [Thing Item]
-    ,this               :: [Thing Object]
+    {neighbors          :: [(Direction, Generic Object)]
+    ,inventory          :: [Generic Item]
+    ,this               :: [Generic Object]
     }
 
 -- Prime data & functions are run inside a feature
