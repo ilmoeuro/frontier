@@ -9,6 +9,7 @@ module Frontier.Features
     (Generic()
     ,withFeatures
     ,collect
+    ,collectP
     ,collectF
     ,collectPF
     ,dispatch
@@ -46,6 +47,13 @@ withFeatures f =
 collect :: (forall a. Feature a -> a c)
           -> [Generic c]
 collect f = map runIdentity $ collectF (Identity . f)
+
+collectP :: (forall a. 
+                Feature a
+                -> (forall b'. Prism' (Generic b') (a b'))
+                -> a c)
+           -> [Generic c]
+collectP f = map runIdentity $ collectPF (((.).(.)) Identity f)
 
 collectF :: Functor f
          => (forall a. Feature a -> f (a c))
