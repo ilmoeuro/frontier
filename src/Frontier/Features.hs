@@ -46,7 +46,7 @@ withFeatures f =
 
 collect :: (forall a. Feature a -> a c)
           -> [Generic c]
-collect f = map runIdentity $ collectF (Identity . f)
+collect f = let f' a _ = f a in collectP f'
 
 collectP :: (forall a. 
                 Feature a
@@ -82,7 +82,7 @@ dispatchP :: (forall a. Feature a
 dispatchP f x =
     -- OK to use here because one module always
     -- knows how to handle an object
-    (`singleOr` error "dispatchPF: feature dispatch failed")
+    (`singleOr` error "feature dispatch failed")
     . catMaybes
     $ withFeatures 
     $ \ftr pr -> x ^? pr <&> f ftr pr
