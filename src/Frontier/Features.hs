@@ -1,4 +1,5 @@
 {-# LANGUAGE GADTSyntax          #-}
+{-# LANGUAGE StandaloneDeriving  #-}
 {-# LANGUAGE RecordWildCards     #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE RankNTypes          #-}
@@ -27,6 +28,8 @@ data Generic a where
     BuildingSpecific    :: Building.Specific a      -> Generic a
     FarmingSpecific     :: Farming.Specific a       -> Generic a
     MovingSpecific      :: Moving.Specific a        -> Generic a
+
+deriving instance Show (Generic a)
     
 makePrisms ''Generic
 
@@ -55,7 +58,7 @@ collectPF :: Functor f
                 -> (forall b'. Prism' (Generic b') (a b'))
                 -> f (a c))
            -> [f (Generic c)]
-collectPF f = withFeatures $ \ftr pr -> (^. re pr) `fmap` (f ftr pr)
+collectPF f = withFeatures $ \ftr pr -> (^. re pr) `fmap` f ftr pr
     
 dispatch :: (forall a. Feature a -> a b -> c)
          -> Generic b
