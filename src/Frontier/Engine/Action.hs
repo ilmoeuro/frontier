@@ -16,6 +16,7 @@ import Frontier.Feature.Action
 import Frontier.Feature.Qualifier
 import Frontier.Features
 
+
 -- Non-prime data & functions are run outside a feature
 data ActionCtx = ActionCtx
     {neighbors          :: [(Direction, Generic Object)]
@@ -31,18 +32,17 @@ data ActionCtx' a = ActionCtx'
     }
 
 actionEnabled :: ActionCtx -> Generic (Action ()) -> Bool
-actionEnabled ActionCtx{..} action =
-    or $ withFeatures $ \ftr@Feature{..} pr ->
+actionEnabled ActionCtx{..} =
+    dispatchP $ \ftr@Feature{..} pr action ->
         let extract = mapMaybe (^? pr)
             neighbors' = map (second (^? pr)) neighbors
             inventory' = extract inventory
             this' = listToMaybe (extract this)
-            action' = run `fmap` (action ^? pr)
-        in maybe False (actionEnabled' ftr ActionCtx'{..}) action'
+        in actionEnabled' ftr ActionCtx'{..} (run action)
 
 actionEnabled' :: Feature a -> ActionCtx' a -> ActionM a b -> Bool
-actionEnabled' Feature{..} ActionCtx'{..} action =
-    isJust . flip iterT action $ \case
+actionEnabled' Feature{..} ActionCtx'{..} =
+    isJust . iterT (\case
         (ShortDescription _ next) ->
             next
         (TargetInventoryItem next) ->
@@ -70,4 +70,4 @@ actionEnabled' Feature{..} ActionCtx'{..} action =
             guard $ notElem dir $ map fst neighbors'
             next True
         (TargetEmptySpace next) ->
-            guard (length neighbors' /= 8) >> next
+            guard (length neighbors' /= 8) >> next)

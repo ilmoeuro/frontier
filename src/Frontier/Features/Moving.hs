@@ -11,7 +11,6 @@ import Frontier.Feature.Action
 import Frontier.Feature.Qualifier
 
 data Specific a where
-    NoOpAction          :: Specific (Action ())
     MoveAction          :: Direction -> Specific (Action ())
     PlayerCharacter     :: Specific Object
 
@@ -27,12 +26,12 @@ feature = Feature {..} where
     symbol :: Specific Object -> Char
     symbol PlayerCharacter = '@'
 
-    command :: Char -> Specific (Action ())
-    command 'h' = MoveAction W
-    command 'j' = MoveAction N
-    command 'k' = MoveAction S
-    command 'l' = MoveAction E
-    command _   = NoOpAction
+    command :: Char -> Maybe (Specific (Action ()))
+    command 'h' = Just $ MoveAction W
+    command 'j' = Just $ MoveAction N
+    command 'k' = Just $ MoveAction S
+    command 'l' = Just $ MoveAction E
+    command _   = Nothing
 
     initPlayerCharacter :: Specific Object
     initPlayerCharacter = PlayerCharacter
@@ -41,6 +40,5 @@ feature = Feature {..} where
     eq = (==)
 
     run :: Specific (Action b) -> ActionM Specific b
-    run NoOpAction       = disabled
     run (MoveAction dir) =
         void $ shortDescription ("Move " ++ show dir) >> me >>= move dir

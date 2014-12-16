@@ -11,7 +11,6 @@ import Frontier.Feature.Action
 import Frontier.Feature.Qualifier
 
 data Specific a where
-    NoOpAction          :: Specific (Action ())
     PlayerCharacter     :: Specific Object
 
 deriving instance Eq (Specific a)
@@ -26,8 +25,8 @@ feature = Feature {..} where
     symbol :: Specific Object -> Char
     symbol _ = '?'
 
-    command :: Char -> Specific (Action ())
-    command _ = NoOpAction
+    command :: Char -> Maybe (Specific (Action ()))
+    command _ = Nothing
 
     initPlayerCharacter :: Specific Object
     initPlayerCharacter = PlayerCharacter
@@ -36,4 +35,4 @@ feature = Feature {..} where
     eq = (==)
 
     run :: Specific (Action b) -> ActionM Specific b
-    run NoOpAction = disabled
+    run _ = disabled

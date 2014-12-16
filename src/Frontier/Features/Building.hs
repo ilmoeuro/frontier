@@ -12,7 +12,6 @@ import Frontier.Feature.Action
 import Frontier.Feature.Qualifier
 
 data Specific a where
-    NoOpAction          :: Specific (Action ())
     SawAction           :: Specific (Action ())
     BuildAction         :: Specific (Action ())
     ChopAction          :: Specific (Action ())
@@ -59,13 +58,12 @@ feature = Feature {..} where
             guard (object == Tree)
             yieldInventoryItem Lumber
             destroyTargetObject
-    run NoOpAction = disabled
 
-    command :: Char -> Specific (Action ())
-    command 's' = SawAction
-    command 'b' = BuildAction
-    command 'c' = ChopAction
-    command _   = NoOpAction
+    command :: Char -> Maybe (Specific (Action ()))
+    command 's' = Just SawAction
+    command 'b' = Just BuildAction
+    command 'c' = Just ChopAction
+    command _   = Nothing
 
     initPlayerCharacter :: Specific Object
     initPlayerCharacter = PlayerCharacter

@@ -1,15 +1,21 @@
-{-# LANGUAGE GADTSyntax #-}
-{-# LANGUAGE RankNTypes #-}
-{-# LANGUAGE RecordWildCards #-}
-{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE GADTSyntax          #-}
+{-# LANGUAGE RecordWildCards     #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE RankNTypes          #-}
+{-# LANGUAGE ImpredicativeTypes  #-}
+{-# LANGUAGE TemplateHaskell     #-}
 module Frontier.Features
     (Generic()
     ,withFeatures
-    ,covariant
-    ,contravariant
+    ,collect
+    ,collectF
+    ,collectPF
+    ,dispatch
+    ,dispatchP
     ) where
 
 import Data.Maybe
+import Data.Functor.Identity
 import Control.Lens
 import Frontier.Extra (singleOr)
 import Frontier.Feature (Feature)
@@ -34,17 +40,38 @@ withFeatures f =
     ,f Moving.feature       _MovingSpecific
     ]
 
-covariant :: (forall a. Feature a -> a c)
+collect :: (forall a. Feature a -> a c)
           -> [Generic c]
-covariant f = withFeatures $ \ftr pr -> f ftr ^. re pr
+collect f = map runIdentity $ collectF (Identity . f)
+
+collectF :: Functor f
+         => (forall a. Feature a -> f (a c))
+         -> [f (Generic c)]
+collectF f = let f' a _ = f a in collectPF f'
+
+collectPF :: Functor f
+          => (forall a. 
+                Feature a
+                -> (forall b'. Prism' (Generic b') (a b'))
+                -> f (a c))
+           -> [f (Generic c)]
+collectPF f = withFeatures $ \ftr pr -> (^. re pr) `fmap` (f ftr pr)
     
-contravariant :: (forall a. Feature a -> a b -> c)
-              -> Generic b
-              -> c
-contravariant f x =
+dispatch :: (forall a. Feature a -> a b -> c)
+         -> Generic b
+         -> c
+dispatch f x = let f' a _ = f a in dispatchP f' x 
+    
+dispatchP :: (forall a. Feature a 
+              -> (forall b'. Prism' (Generic b') (a b')) 
+              -> a b 
+              -> c)
+          -> Generic b
+          -> c
+dispatchP f x =
     -- OK to use here because one module always
     -- knows how to handle an object
-    (`singleOr` error "error in contravariant: module dispatch failed")
+    (`singleOr` error "dispatchPF: feature dispatch failed")
     . catMaybes
     $ withFeatures 
-    $ \ftr pr -> x ^? pr <&> f ftr
+    $ \ftr pr -> x ^? pr <&> f ftr pr

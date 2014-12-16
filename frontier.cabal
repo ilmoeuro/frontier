@@ -13,6 +13,7 @@ executable frontier
                    text >= 1.1 && < 1.2,
                    free >= 4.9 && < 5.0,
                    lens >= 4.6 && < 4.7,
+                   transformers >= 0.3.0.0 && < 0.4,
                    mtl >= 2.1 && < 2.2
   ghc-options:     -Wall
   other-modules:   

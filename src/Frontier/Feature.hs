@@ -9,8 +9,9 @@ import Frontier.Feature.Qualifier
 data Feature a = Feature
     {initItems              :: [a Item]
     ,symbol                 :: a Object -> Char
-    ,command                :: Char -> a (Action ())
+    ,command                :: Char -> Maybe (a (Action ()))
     ,initPlayerCharacter    :: a Object
+    -- TODO: way to compare non-enum things
     ,eq                     :: forall b. a b -> a b -> Bool
     ,run                    :: forall b. a (Action b) -> ActionM a b
     }
