@@ -22,6 +22,6 @@ instance Show World where
             (do
                 i <- [0..width]
                 return
-                    . maybe ' ' (contravariant symbol)
+                    . maybe ' ' (dispatch symbol)
                     $ lookup (j,i) cells)
             "\n"

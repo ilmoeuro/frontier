@@ -57,6 +57,9 @@ data ActionF a next
     | TargetEmptySpace next
     deriving (Functor)
 
+instance Show (ActionF a next) where
+    show = const "<action>"
+
 type ActionM a = FreeT (ActionF a) Maybe
 
 makeFree ''ActionF

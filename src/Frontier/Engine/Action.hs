@@ -33,12 +33,12 @@ data ActionCtx' a = ActionCtx'
 
 actionEnabled :: ActionCtx -> Generic (Action ()) -> Bool
 actionEnabled ActionCtx{..} =
-    dispatchP $ \ftr@Feature{..} pr action ->
+    dispatchP $ \ftr@Feature{..} pr ->
         let extract = mapMaybe (^? pr)
             neighbors' = map (second (^? pr)) neighbors
             inventory' = extract inventory
             this' = listToMaybe (extract this)
-        in actionEnabled' ftr ActionCtx'{..} (run action)
+        in actionEnabled' ftr ActionCtx'{..} . run
 
 actionEnabled' :: Feature a -> ActionCtx' a -> ActionM a b -> Bool
 actionEnabled' Feature{..} ActionCtx'{..} =
