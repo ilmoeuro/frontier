@@ -1,6 +1,6 @@
-{-# LANGUAGE LambdaCase      #-}
-{-# LANGUAGE RankNTypes      #-}
-{-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE LambdaCase     #-}
+{-# LANGUAGE NamedFieldPuns #-}
+{-# LANGUAGE RankNTypes     #-}
 module Frontier.Engine.Action
     (actionEnabled
     ,ActionCtx(..)
@@ -32,16 +32,16 @@ data ActionCtx' a = ActionCtx'
     }
 
 actionEnabled :: ActionCtx -> Generic (Action ()) -> Bool
-actionEnabled ActionCtx{..} =
-    dispatchP $ \ftr@Feature{..} pr ->
+actionEnabled ActionCtx{neighbors,inventory,this} =
+    dispatchP $ \ftr@Feature{run} pr ->
         let extract = mapMaybe (^? pr)
             neighbors' = map (second (^? pr)) neighbors
             inventory' = extract inventory
             this' = listToMaybe (extract this)
-        in actionEnabled' ftr ActionCtx'{..} . run
+        in actionEnabled' ftr ActionCtx'{neighbors', inventory', this'} . run
 
 actionEnabled' :: Feature a -> ActionCtx' a -> ActionM a b -> Bool
-actionEnabled' Feature{..} ActionCtx'{..} =
+actionEnabled' Feature{eq} ActionCtx'{neighbors',inventory',this'} =
     isJust . iterT (\case
         (ShortDescription _ next) ->
             next

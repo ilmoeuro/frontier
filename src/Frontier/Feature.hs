@@ -6,6 +6,7 @@ module Frontier.Feature
 import Frontier.Feature.Action (ActionM)
 import Frontier.Feature.Qualifier
 
+-- Maybe composable someday?
 data Feature a = Feature
     {initItems              :: [a Item]
     ,symbol                 :: a Object -> Char
