@@ -14,7 +14,9 @@ executable frontier
                    free >= 4.9 && < 5.0,
                    lens >= 4.6 && < 4.7,
                    transformers >= 0.3.0.0 && < 0.4,
-                   mtl >= 2.1 && < 2.2
+                   mtl >= 2.1 && < 2.2,
+                   pipes >= 4.1.4 && < 4.2,
+                   mvc >= 1.0.2 && < 1.1
   ghc-options:     -Wall
   other-modules:   
                    Frontier.Feature,
@@ -24,6 +26,6 @@ executable frontier
                    Frontier.Features.Building,
                    Frontier.Features.Farming,
                    Frontier.Features.Moving,
-                   Frontier.World,
                    Frontier.Extra,
-                   Frontier.Engine.Action
+                   Frontier.Engine.Action,
+                   Frontier.Engine.World

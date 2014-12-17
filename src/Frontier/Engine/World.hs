@@ -1,5 +1,5 @@
 {-# LANGUAGE RecordWildCards #-}
-module Frontier.World
+module Frontier.Engine.World
     (World(..)
     ) where
 -- TODO: more efficient
