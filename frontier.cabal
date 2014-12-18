@@ -20,10 +20,8 @@ executable frontier
                    Frontier.Feature,
                    Frontier.Feature.Qualifier,
                    Frontier.Feature.Action,
-                   Frontier.Features,
                    Frontier.Features.Building,
                    Frontier.Features.Farming,
                    Frontier.Features.Moving,
-                   Frontier.World,
                    Frontier.Extra,
                    Frontier.Engine.Action
