@@ -9,6 +9,7 @@ module Frontier.Engine.Action
 import Control.Monad
 import Control.Monad.Trans.Free
 import Data.Maybe
+import Debug.Trace (traceShow)
 import Frontier.Feature
 import Frontier.Feature.Action
 import Frontier.Feature.Qualifier
@@ -43,6 +44,6 @@ actionEnabled ctx@Context{..} f = isJust .: iterT $ \case
     (YieldItem _ next)                  -> next
     (Me next)                           -> next this
     (Move dir obj next)                 -> do
-        guard $ eq f obj this
+        guard $ eq f obj this
         guard . isNothing $ lookup dir neighbors
         next

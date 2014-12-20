@@ -13,6 +13,7 @@ import qualified Frontier.Feature.Entity as E
 
 data Component a where
     PlayerCharacter     :: Component a
+    Blank               :: Component a
     Dummy               :: Component a
 
 deriving instance Show (Component a)
@@ -21,6 +22,7 @@ deriving instance Eq (Component a)
 feature :: Feature Component
 feature = \case
     (ComponentFor E.PlayerCharacter)-> PlayerCharacter
+    (ComponentFor E.Blank)          -> Blank
     (ComponentFor _)                -> Dummy
 
     InitItems                       -> []
@@ -42,6 +44,12 @@ feature = \case
     (DoTurn _ _)                    -> []
 
     (Symbol PlayerCharacter)        -> "@"
-    (Symbol Dummy)                  -> ""
+    (Symbol _)                      -> ""
 
+    -- TODO: better solution for blank comparisons
+    (Eq Blank _)                    -> True
+    (Eq _ Blank)                    -> True
     (Eq a b)                        -> a == b
+
+    (PartialUpdate x Blank)         -> x
+    (PartialUpdate _ x)             -> x

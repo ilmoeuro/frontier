@@ -20,7 +20,7 @@ data Component a where
     Saw                 :: Component Item
     Hammer              :: Component Item
     Axe                 :: Component Item
-    Empty               :: Component a
+    Blank               :: Component a
     Dummy               :: Component a
 
 deriving instance Show (Component a)
@@ -32,7 +32,7 @@ feature = \case
         E.Saw       -> Saw
         E.Hammer    -> Hammer
         E.Axe       -> Axe
-        E.Empty     -> Empty
+        E.Blank     -> Blank
         _           -> Dummy
 
     InitItems                       ->
@@ -70,7 +70,10 @@ feature = \case
 
     (DoTurn _ _)                    -> []
 
+    -- TODO: better solution for blank comparisons
+    (Eq Blank _)                    -> True
+    (Eq _ Blank)                    -> True
     (Eq a b)                        -> a == b
 
-    (PartialUpdate x Empty)         -> x
+    (PartialUpdate x Blank)         -> x
     (PartialUpdate _ x)             -> x

@@ -9,10 +9,11 @@ module Frontier.Features.Farming
 
 -- import Control.Monad
 import Frontier.Feature
--- import qualified Frontier.Feature.Entity as E
+import qualified Frontier.Feature.Entity as E
 -- import Frontier.Feature.Qualifier
 
 data Component a where
+    Blank               :: Component a
     Dummy               :: Component a
 
 deriving instance Show (Component a)
@@ -20,14 +21,21 @@ deriving instance Eq (Component a)
 
 feature :: Feature Component
 feature = \case
+    (ComponentFor E.Blank)          -> Blank
     (ComponentFor _)                -> Dummy
 
     InitItems                       -> []
 
-    (Symbol Dummy)                  -> ""
+    (Symbol _)                      -> ""
 
     (Command _ _)                   -> []
 
     (DoTurn _ _)                    -> []
 
+    -- TODO: better solution for blank comparisons
+    (Eq Blank _)                    -> True
+    (Eq _ Blank)                    -> True
     (Eq a b)                        -> a == b
+
+    (PartialUpdate x Blank)         -> x
+    (PartialUpdate _ x)             -> x

@@ -11,7 +11,7 @@ module Frontier.Feature.Compose
 import Control.Monad.Trans.Free
 import Frontier.Feature
 import Frontier.Feature.Action
-import Frontier.Feature.Entity (Seed (Empty))
+import Frontier.Feature.Entity (Seed (Blank))
 
 data (:<+>) a b c = (:<+>) (a c) (b c) deriving (Show, Eq)
 infixl 5 :<+>
@@ -68,9 +68,9 @@ split f g a =
     ,a . promote (empty :<+>) snd'
     ) where
         empty :: a d
-        empty = componentFor f Empty
+        empty = componentFor f Blank
         empty' :: b d
-        empty' = componentFor g Empty
+        empty' = componentFor g Blank
 
 (<+>) :: Feature a ->  Feature b -> Feature (a :<+> b)
 (<+>) f g (ComponentFor x)

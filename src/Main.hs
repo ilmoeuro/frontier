@@ -6,7 +6,7 @@ import Frontier.Feature.Action
 import Frontier.Feature.Compose
 import Frontier.Feature.Entity
 import Frontier.Feature.Qualifier
-import Frontier.Features.Building
+import Frontier.Features.Moving
 
 main::IO()
 main = undefined
