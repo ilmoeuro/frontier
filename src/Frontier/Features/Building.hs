@@ -1,6 +1,5 @@
 {-# LANGUAGE GADTs              #-}
 {-# LANGUAGE LambdaCase         #-}
-{-# LANGUAGE OverloadedStrings  #-}
 {-# LANGUAGE StandaloneDeriving #-}
 module Frontier.Features.Building
     (Component()
@@ -34,29 +33,30 @@ feature = \case
         E.Axe       -> Axe
         _           -> Dummy
 
-    InitItems                           -> [E.Saw
-                                           ,E.Hammer
-                                           ,E.Axe
-                                           ]
+    InitItems                           ->
+        [E.Saw
+        ,E.Hammer
+        ,E.Axe
+        ]
 
     (Symbol Wall)                       -> "#"
     (Symbol Tree)                       -> "^"
     (Symbol Dummy)                      -> ""
 
-    (Command 's' fn)                    -> (:[]) . fn $ do
+    (Command 's' fn)                    -> (:[]) . fn feature $ do
         shortDescription "Saw lumber"
         requireItem Saw
         target $ InventoryItem $ \item -> do
             guard (item == Lumber)
             replaceWith (Planks, E.Opaque)
 
-    (Command 'b' fn)                    -> (:[]) . fn $ do
+    (Command 'b' fn)                    -> (:[]) . fn feature $ do
         shortDescription "Build a wall"
         requireItem Hammer
         consumeItem Planks
         target $ EmptySpace $ replaceWith (Wall, E.Opaque)
 
-    (Command 'c' fn)                    -> (:[]) . fn $ do
+    (Command 'c' fn)                    -> (:[]) . fn feature $ do
         shortDescription "Chop down trees"
         requireItem Axe
         target $ NearObject $ \object -> do

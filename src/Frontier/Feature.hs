@@ -1,7 +1,6 @@
-{-# LANGUAGE GADTs              #-}
-{-# LANGUAGE ImpredicativeTypes #-}
-{-# LANGUAGE RankNTypes         #-}
-{-# LANGUAGE TypeOperators      #-}
+{-# LANGUAGE GADTs         #-}
+{-# LANGUAGE RankNTypes    #-}
+{-# LANGUAGE TypeOperators #-}
 module Frontier.Feature
     (Query(..)
     ,Feature
@@ -22,7 +21,9 @@ data Query a result where
     ComponentFor    :: Seed b -> Query a (a b)
     InitItems       :: Query a [Seed Item]
     Symbol          :: a Object -> Query a String
-    Command         :: Char -> (forall a'. ActionM a' () -> b) -> Query a [b]
+    Command         :: Char
+                    -> (forall a'. Feature a' -> ActionM a' () -> b)
+                    -> Query a [b]
     Eq              :: a b -> a b -> Query a Bool
 
 type Feature a = forall result. Query a result -> result
@@ -39,7 +40,10 @@ initItems f = f InitItems
 symbol :: Feature a -> a Object -> String
 symbol f = f.Symbol
 
-command :: Feature a -> Char -> (forall a'. ActionM a' () -> b) -> [b]
+command :: Feature a
+        -> Char
+        -> (forall a'. Feature a' -> ActionM a' () -> b)
+        -> [b]
 command f c fn = f (Command c fn)
 
 eq :: Feature a -> a b -> a b -> Bool

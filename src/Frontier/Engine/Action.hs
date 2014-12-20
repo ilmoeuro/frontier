@@ -22,20 +22,20 @@ data ActionEnabledParams a = ActionEnabledParams
     ,this               :: a Object
     }
 
-actionEnabled :: Feature a -> ActionEnabledParams a -> ActionM a b -> Bool
-actionEnabled f param@ActionEnabledParams{..} = isJust .: iterT $ \case
+actionEnabled :: ActionEnabledParams a -> Feature a -> ActionM a b -> Bool
+actionEnabled param@ActionEnabledParams{..} f = isJust .: iterT $ \case
     (ShortDescription _ next)           -> next
     (Target (InventoryItem fn) next)   -> do
-        let isEnabled i = actionEnabled f param (fn i)
+        let isEnabled i = actionEnabled param f (fn i)
         guard . or $ map isEnabled inventory
         next
     (Target (NearObject fn) next)       -> do
-        let isEnabled o = actionEnabled f param (fn o)
+        let isEnabled o = actionEnabled param f (fn o)
         guard . or $ map (isEnabled.snd) neighbors
         next
     (Target (EmptySpace fn) next)       -> do
         guard $ length neighbors /= 8
-        guard $ actionEnabled f param fn
+        guard $ actionEnabled param f fn
         next
     (UseItem _ itm next)                -> do
         guard $ any (eq f itm) inventory
