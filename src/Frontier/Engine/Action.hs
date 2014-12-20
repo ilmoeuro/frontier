@@ -2,7 +2,7 @@
 {-# LANGUAGE RankNTypes      #-}
 {-# LANGUAGE RecordWildCards #-}
 module Frontier.Engine.Action
-    (ActionEnabledParams(..)
+    (Context(..)
     ,actionEnabled
     ) where
 
@@ -16,26 +16,26 @@ import Frontier.Feature.Qualifier
 (.:) :: (b -> c) -> (a -> a1 -> b) -> a -> a1 -> c
 (.:) = (.).(.)
 
-data ActionEnabledParams a = ActionEnabledParams
+data Context a = Context
     {neighbors          :: [(Direction, a Object)]
     ,inventory          :: [a Item]
     ,this               :: a Object
     }
 
-actionEnabled :: ActionEnabledParams a -> Feature a -> ActionM a b -> Bool
-actionEnabled param@ActionEnabledParams{..} f = isJust .: iterT $ \case
+actionEnabled :: Context a -> Feature a -> ActionM a b -> Bool
+actionEnabled ctx@Context{..} f = isJust .: iterT $ \case
     (ShortDescription _ next)           -> next
     (Target (InventoryItem fn) next)   -> do
-        let isEnabled i = actionEnabled param f (fn i)
+        let isEnabled i = actionEnabled ctx f (fn i)
         guard . or $ map isEnabled inventory
         next
     (Target (NearObject fn) next)       -> do
-        let isEnabled o = actionEnabled param f (fn o)
+        let isEnabled o = actionEnabled ctx f (fn o)
         guard . or $ map (isEnabled.snd) neighbors
         next
     (Target (EmptySpace fn) next)       -> do
         guard $ length neighbors /= 8
-        guard $ actionEnabled param f fn
+        guard $ actionEnabled ctx f fn
         next
     (UseItem _ itm next)                -> do
         guard $ any (eq f itm) inventory

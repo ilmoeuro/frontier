@@ -7,6 +7,7 @@ module Frontier.Feature.Entity
 import Frontier.Feature.Qualifier
 
 data Seed a where
+    Empty               :: Seed a
     Opaque              :: Seed a
     PlayerCharacter     :: Seed Object
     Saw                 :: Seed Item

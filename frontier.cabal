@@ -21,6 +21,7 @@ executable frontier
                    Frontier.Feature.Action,
                    Frontier.Feature.Entity,
                    Frontier.Feature.Qualifier,
+                   Frontier.Feature.Compose,
                    Frontier.Features.Building,
                    Frontier.Features.Farming,
                    Frontier.Features.Moving

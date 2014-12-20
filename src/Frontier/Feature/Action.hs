@@ -15,6 +15,7 @@ module Frontier.Feature.Action
     -- ActionM actions
     ,shortDescription
     ,target
+    ,useItem
     ,yieldItem
     ,me
     ,move
