@@ -9,6 +9,7 @@ module Frontier.Feature
     ,initItems
     ,symbol
     ,command
+    ,doTurn
     ,eq
     ,(<+>)
     ) where
@@ -22,6 +23,9 @@ data Query a result where
     InitItems       :: Query a [Seed Item]
     Symbol          :: a Object -> Query a String
     Command         :: Char
+                    -> (forall a'. Feature a' -> ActionM a' () -> b)
+                    -> Query a [b]
+    DoTurn          :: a Object
                     -> (forall a'. Feature a' -> ActionM a' () -> b)
                     -> Query a [b]
     Eq              :: a b -> a b -> Query a Bool
@@ -46,6 +50,12 @@ command :: Feature a
         -> [b]
 command f c fn = f (Command c fn)
 
+doTurn :: Feature a
+        -> a Object
+        -> (forall a'. Feature a' -> ActionM a' () -> b)
+        -> [b]
+doTurn f o fn = f (DoTurn o fn)
+
 eq :: Feature a -> a b -> a b -> Bool
 eq f a b = f (Eq a b)
 
@@ -54,5 +64,6 @@ eq f a b = f (Eq a b)
 (<+>) f g InitItems                     = f InitItems ++ g InitItems
 (<+>) f g (Symbol (x :<+> y))           = f (Symbol x) ++ g (Symbol y)
 (<+>) f g (Command x y)                 = f (Command x y) ++ g (Command x y)
+(<+>) f g (DoTurn (x :<+> y) z)         = f (DoTurn x z) ++ g (DoTurn y z)
 (<+>) f g (Eq (x :<+> y) (x' :<+> y'))  = f (Eq x x') && g (Eq y y')
 infixl 5 <+>

@@ -1,6 +1,5 @@
 {-# LANGUAGE GADTs              #-}
 {-# LANGUAGE LambdaCase         #-}
-{-# LANGUAGE OverloadedStrings  #-}
 {-# LANGUAGE StandaloneDeriving #-}
 module Frontier.Features.Moving
     (Component()
@@ -26,19 +25,21 @@ feature = \case
 
     InitItems                       -> []
 
-    (Command 'h' fn)                -> (:[]) . fn $ do
+    (Command 'h' fn)                -> (:[]) . fn feature $ do
         shortDescription "Move east"
         me >>= move E
-    (Command 'j' fn)                -> (:[]) . fn $ do
+    (Command 'j' fn)                -> (:[]) . fn feature $ do
         shortDescription "Move south"
         me >>= move S
-    (Command 'k' fn)                -> (:[]) . fn $ do
+    (Command 'k' fn)                -> (:[]) . fn feature $ do
         shortDescription "Move north"
         me >>= move N
-    (Command 'l' fn)                -> (:[]) . fn $ do
+    (Command 'l' fn)                -> (:[]) . fn feature $ do
         shortDescription "Move west"
         me >>= move W
     (Command _ _)                   -> []
+
+    (DoTurn _ _)                    -> []
 
     (Symbol PlayerCharacter)        -> "@"
     (Symbol Dummy)                  -> ""

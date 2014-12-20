@@ -27,36 +27,36 @@ deriving instance Eq (Component a)
 
 feature :: Feature Component
 feature = \case
-    (ComponentFor entity)               -> case entity of
+    (ComponentFor entity)           -> case entity of
         E.Saw       -> Saw
         E.Hammer    -> Hammer
         E.Axe       -> Axe
         _           -> Dummy
 
-    InitItems                           ->
+    InitItems                       ->
         [E.Saw
         ,E.Hammer
         ,E.Axe
         ]
 
-    (Symbol Wall)                       -> "#"
-    (Symbol Tree)                       -> "^"
-    (Symbol Dummy)                      -> ""
+    (Symbol Wall)                   -> "#"
+    (Symbol Tree)                   -> "^"
+    (Symbol Dummy)                  -> ""
 
-    (Command 's' fn)                    -> (:[]) . fn feature $ do
+    (Command 's' fn)                -> (:[]) . fn feature $ do
         shortDescription "Saw lumber"
         requireItem Saw
         target $ InventoryItem $ \item -> do
             guard (item == Lumber)
             replaceWith (Planks, E.Opaque)
 
-    (Command 'b' fn)                    -> (:[]) . fn feature $ do
+    (Command 'b' fn)                -> (:[]) . fn feature $ do
         shortDescription "Build a wall"
         requireItem Hammer
         consumeItem Planks
         target $ EmptySpace $ replaceWith (Wall, E.Opaque)
 
-    (Command 'c' fn)                    -> (:[]) . fn feature $ do
+    (Command 'c' fn)                -> (:[]) . fn feature $ do
         shortDescription "Chop down trees"
         requireItem Axe
         target $ NearObject $ \object -> do
@@ -64,6 +64,8 @@ feature = \case
             yieldItem Lumber
             destroy
 
-    (Command _ _)                       -> []
+    (Command _ _)                   -> []
 
-    (Eq a b)                            -> a == b
+    (DoTurn _ _)                    -> []
+
+    (Eq a b)                        -> a == b

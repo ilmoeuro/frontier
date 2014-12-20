@@ -50,13 +50,10 @@ data Targeting a
     | EmptySpace (ActionM a (Outcome a Object))
 
 data ActionF a next
-    -- Meta information
     = ShortDescription String next
-    -- Item actions
     | Target (Targeting a) next
     | UseItem Consuming (a Item) next
     | YieldItem (a Item) next
-    -- Object actions
     | Me (a Object -> next)
     | Move Direction (a Object) next
     deriving (Functor)

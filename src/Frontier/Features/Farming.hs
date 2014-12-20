@@ -28,4 +28,6 @@ feature = \case
 
     (Command _ _)                   -> []
 
+    (DoTurn _ _)                    -> []
+
     (Eq a b)                        -> a == b
