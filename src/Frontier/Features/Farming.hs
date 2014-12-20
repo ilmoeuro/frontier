@@ -1,38 +1,32 @@
 {-# LANGUAGE GADTs              #-}
-{-# LANGUAGE RecordWildCards    #-}
+{-# LANGUAGE LambdaCase         #-}
+{-# LANGUAGE OverloadedStrings  #-}
 {-# LANGUAGE StandaloneDeriving #-}
 module Frontier.Features.Farming
-    (Specific()
+    (Component()
     ,feature
     ) where
 
+-- import Control.Monad
 import Frontier.Feature
 import Frontier.Feature.Action
-import Frontier.Feature.Qualifier
+-- import qualified Frontier.Feature.Entity as E
+-- import Frontier.Feature.Qualifier
 
-data Specific a where
-    PlayerCharacter     :: Specific Object
+data Component a where
+    Dummy               :: Component a
 
-deriving instance Eq (Specific a)
-deriving instance Show (Specific a)
+deriving instance Show (Component a)
+deriving instance Eq (Component a)
 
-feature :: Feature Specific
-feature = Feature {..} where
+feature :: Feature Component
+feature = \case
+    (ComponentFor _)                -> Dummy
 
-    initItems :: [Specific Item]
-    initItems = []
+    InitItems                       -> []
 
-    symbol :: Specific Object -> Char
-    symbol _ = '?'
+    (Symbol Dummy)                  -> " "
 
-    command :: Char -> Maybe (Specific (Action ()))
-    command _ = Nothing
+    (Command _ fn)                  -> (:[]) . fn $ disabled
 
-    initPlayerCharacter :: Specific Object
-    initPlayerCharacter = PlayerCharacter
-
-    eq :: Specific a -> Specific a -> Bool
-    eq = (==)
-
-    run :: Specific (Action b) -> ActionM Specific b
-    run _ = disabled
+    (Eq a b)                        -> a == b

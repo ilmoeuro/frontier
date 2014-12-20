@@ -1,72 +1,67 @@
 {-# LANGUAGE GADTs              #-}
-{-# LANGUAGE RecordWildCards    #-}
+{-# LANGUAGE LambdaCase         #-}
+{-# LANGUAGE OverloadedStrings  #-}
 {-# LANGUAGE StandaloneDeriving #-}
 module Frontier.Features.Building
-    (Specific()
+    (Component()
     ,feature
     ) where
 
 import Control.Monad
 import Frontier.Feature
 import Frontier.Feature.Action
+import qualified Frontier.Feature.Entity as E
 import Frontier.Feature.Qualifier
 
-data Specific a where
-    SawAction           :: Specific (Action ())
-    BuildAction         :: Specific (Action ())
-    ChopAction          :: Specific (Action ())
-    PlayerCharacter     :: Specific Object
-    Wall                :: Specific Object
-    Tree                :: Specific Object
-    Lumber              :: Specific Item
-    Planks              :: Specific Item
-    Saw                 :: Specific Item
-    Hammer              :: Specific Item
-    Axe                 :: Specific Item
+data Component a where
+    Dummy               :: Component a
+    PlayerCharacter     :: Component Object
+    Wall                :: Component Object
+    Tree                :: Component Object
+    Lumber              :: Component Item
+    Planks              :: Component Item
+    Saw                 :: Component Item
+    Hammer              :: Component Item
+    Axe                 :: Component Item
 
-deriving instance Show (Specific a)
-deriving instance Eq (Specific a)
+deriving instance Show (Component a)
+deriving instance Eq (Component a)
 
-feature :: Feature Specific
-feature = Feature {..} where
+feature :: Feature Component
+feature = \case
+    (ComponentFor E.Saw)            -> Saw
+    (ComponentFor E.Hammer)         -> Hammer
+    (ComponentFor E.Axe)            -> Axe
+    (ComponentFor E.PlayerCharacter)-> PlayerCharacter
 
-    initItems :: [Specific Item]
-    initItems = [Saw, Hammer, Axe]
+    InitItems                       -> [E.Saw
+                                       ,E.Hammer
+                                       ,E.Axe
+                                       ]
 
-    symbol :: Specific Object -> Char
-    symbol Wall             = '#'
-    symbol Tree             = '^'
-    symbol PlayerCharacter  = '@'
+    (Symbol Wall)                   -> "#"
+    (Symbol Tree)                   -> "^"
+    (Symbol PlayerCharacter)        -> "@"
+    (Symbol Dummy)                  -> " "
 
-    run :: Specific (Action a) -> ActionM Specific a
-    run SawAction = do
-            shortDescription "Saw lumber"
-            requireItem NoConsume Saw
-            item <- targetInventoryItem
+    (Command 's' fn)                -> (:[]) . fn $ do
+        shortDescription "Saw lumber"
+        requireItem NoConsume Saw
+        target $ InventoryItem $ \item -> do
             guard (item == Lumber)
-            replaceTargetItem Planks
-    run BuildAction = do
-            shortDescription "Build a wall"
-            requireItem NoConsume Hammer
-            requireItem Consume Planks
-            targetEmptySpace
-            replaceTargetObject Wall
-    run ChopAction = do
-            shortDescription "Chop down trees"
-            requireItem NoConsume Axe
-            object <- targetObject Near
+            replaceWith Planks
+    (Command 'b' fn)                -> (:[]) . fn $ do
+        shortDescription "Build a wall"
+        requireItem NoConsume Hammer
+        requireItem Consume Planks
+        target $ EmptySpace $ replaceWith Wall
+    (Command 'c' fn)                -> (:[]) . fn $ do
+        shortDescription "Chop down trees"
+        requireItem NoConsume Axe
+        target $ NearObject $ \object -> do
             guard (object == Tree)
-            yieldInventoryItem Lumber
-            destroyTargetObject
+            yieldItem Lumber
+            destroy
+    (Command _ fn)                  -> (:[]) . fn $ disabled
 
-    command :: Char -> Maybe (Specific (Action ()))
-    command 's' = Just SawAction
-    command 'b' = Just BuildAction
-    command 'c' = Just ChopAction
-    command _   = Nothing
-
-    initPlayerCharacter :: Specific Object
-    initPlayerCharacter = PlayerCharacter
-
-    eq :: Specific a -> Specific a -> Bool
-    eq = (==)
+    (Eq a b)                        -> a == b

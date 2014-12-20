@@ -1,44 +1,42 @@
 {-# LANGUAGE GADTs              #-}
-{-# LANGUAGE RecordWildCards    #-}
+{-# LANGUAGE LambdaCase         #-}
+{-# LANGUAGE OverloadedStrings  #-}
 {-# LANGUAGE StandaloneDeriving #-}
 module Frontier.Features.Moving
-    (Specific()
+    (Component()
     ,feature) where
 
-import Control.Monad
+-- import Control.Monad
 import Frontier.Feature
 import Frontier.Feature.Action
-import Frontier.Feature.Qualifier
+-- import Frontier.Feature.Qualifier
 
-data Specific a where
-    MoveAction          :: Direction -> Specific (Action ())
-    PlayerCharacter     :: Specific Object
+data Component a where
+    Dummy               :: Component a
 
-deriving instance Show (Specific a)
-deriving instance Eq (Specific a)
+deriving instance Show (Component a)
+deriving instance Eq (Component a)
 
-feature :: Feature Specific
-feature = Feature {..} where
+feature :: Feature Component
+feature = \case
+    (ComponentFor _)                -> Dummy
 
-    initItems :: [Specific Item]
-    initItems = []
+    InitItems                       -> []
 
-    symbol :: Specific Object -> Char
-    symbol PlayerCharacter = '@'
+    (Command 'h' fn)                -> (:[]) . fn $ do
+        shortDescription "Move east"
+        me >>= move E
+    (Command 'j' fn)                -> (:[]) . fn $ do
+        shortDescription "Move south"
+        me >>= move S
+    (Command 'k' fn)                -> (:[]) . fn $ do
+        shortDescription "Move north"
+        me >>= move N
+    (Command 'l' fn)                -> (:[]) . fn $ do
+        shortDescription "Move west"
+        me >>= move W
+    (Command _ fn)                  -> (:[]) . fn $ disabled
 
-    command :: Char -> Maybe (Specific (Action ()))
-    command 'h' = Just $ MoveAction W
-    command 'j' = Just $ MoveAction N
-    command 'k' = Just $ MoveAction S
-    command 'l' = Just $ MoveAction E
-    command _   = Nothing
+    (Symbol Dummy)                  -> " "
 
-    initPlayerCharacter :: Specific Object
-    initPlayerCharacter = PlayerCharacter
-
-    eq :: Specific a -> Specific a -> Bool
-    eq = (==)
-
-    run :: Specific (Action b) -> ActionM Specific b
-    run (MoveAction dir) =
-        void $ shortDescription ("Move " ++ show dir) >> me >>= move dir
+    (Eq a b)                        -> a == b

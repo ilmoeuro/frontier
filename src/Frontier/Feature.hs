@@ -1,30 +1,32 @@
 {-# LANGUAGE GADTs              #-}
 {-# LANGUAGE ImpredicativeTypes #-}
 {-# LANGUAGE RankNTypes         #-}
+{-# LANGUAGE TypeOperators      #-}
 module Frontier.Feature
     (Query(..)
     ,Feature
-    ,Feature'
-    ,comp
+    ,(:<+>)()
+    ,(<+>)
     ) where
 
-import Control.Arrow
-import Frontier.Feature.Action (ActionM)
+import Frontier.Feature.Action
+import Frontier.Feature.Entity
 import Frontier.Feature.Qualifier
 
 data Query a result where
-    InitItems               :: Query a [a Item]
-    Symbol                  :: a Object -> Query a Char
-    InitPlayerCharacter     :: Query a (a Object)
-    Command                 :: Char -> Query a (a (Action ()))
-    Eq                      :: (forall b. a b -> a b) -> Query a Bool
-    -- TODO: Polymorphic
-    Run                     :: a (Action ()) -> Query a (ActionM a ())
+    ComponentFor    :: Entity b -> Query a (a b)
+    InitItems       :: Query a [Entity Item]
+    Symbol          :: a Object -> Query a String
+    Command         :: Char -> (forall a'. ActionM a' () -> b) -> Query a [b]
+    Eq              :: a b -> a b -> Query a Bool
 
-type Feature' a = forall result. Query a result -> result
-type Feature a b c d = (Feature' a, b -> c -> d)
+type Feature a = forall result. Query a result -> result
 
-comp :: (b -> c, b1 -> c1)
-        -> (b' -> c')
-        -> ((b, b') -> (c, c'), (b'1 -> c'1) -> (b1, b'1) -> (c1, c'1))
-comp (ftr,k) ftr' = (ftr *** ftr', (k ***))
+data (:<+>) a b c = (:<+>) (a c) (b c)
+
+(<+>) :: Feature a ->  Feature b -> Feature (a :<+> b)
+(<+>) f g (ComponentFor x)              = f (ComponentFor x) :<+> g (ComponentFor x)
+(<+>) f g InitItems                     = f InitItems ++ g InitItems
+(<+>) f g (Symbol (x :<+> y))           = f (Symbol x) ++ g (Symbol y)
+(<+>) f g (Command x y)                 = f (Command x y) ++ g (Command x y)
+(<+>) f g (Eq (x :<+> y) (x' :<+> y'))  = f (Eq x x') && g (Eq y y')
