@@ -9,7 +9,6 @@ module Frontier.Features.Farming
 
 -- import Control.Monad
 import Frontier.Feature
-import Frontier.Feature.Action
 -- import qualified Frontier.Feature.Entity as E
 -- import Frontier.Feature.Qualifier
 
@@ -25,8 +24,8 @@ feature = \case
 
     InitItems                       -> []
 
-    (Symbol Dummy)                  -> " "
+    (Symbol Dummy)                  -> ""
 
-    (Command _ fn)                  -> (:[]) . fn $ disabled
+    (Command _ _)                   -> []
 
     (Eq a b)                        -> a == b

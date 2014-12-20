@@ -18,10 +18,9 @@ executable frontier
   ghc-options:     -Wall
   other-modules:   
                    Frontier.Feature,
-                   Frontier.Feature.Qualifier,
                    Frontier.Feature.Action,
+                   Frontier.Feature.Entity,
+                   Frontier.Feature.Qualifier,
                    Frontier.Features.Building,
                    Frontier.Features.Farming,
-                   Frontier.Features.Moving,
-                   Frontier.Engine.Action,
-                   Frontier.Feature.Entity
+                   Frontier.Features.Moving

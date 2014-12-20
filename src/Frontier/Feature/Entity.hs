@@ -1,12 +1,20 @@
-{-# LANGUAGE GADTs #-}
+{-# LANGUAGE GADTs              #-}
+{-# LANGUAGE StandaloneDeriving #-}
 module Frontier.Feature.Entity
-    (Entity(..)
+    (Seed(..)
     ) where
 
 import Frontier.Feature.Qualifier
 
-data Entity a where
-    PlayerCharacter     :: Entity Object
-    Saw                 :: Entity Item
-    Hammer              :: Entity Item
-    Axe                 :: Entity Item
+data Seed a where
+    PlayerCharacter     :: Seed Object
+    Wall                :: Seed Object
+    Tree                :: Seed Object
+    Lumber              :: Seed Item
+    Planks              :: Seed Item
+    Saw                 :: Seed Item
+    Hammer              :: Seed Item
+    Axe                 :: Seed Item
+
+deriving instance Show (Seed a)
+deriving instance Eq (Seed a)

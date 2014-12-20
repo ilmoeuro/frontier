@@ -14,8 +14,6 @@ import qualified Frontier.Feature.Entity as E
 import Frontier.Feature.Qualifier
 
 data Component a where
-    Dummy               :: Component a
-    PlayerCharacter     :: Component Object
     Wall                :: Component Object
     Tree                :: Component Object
     Lumber              :: Component Item
@@ -23,45 +21,49 @@ data Component a where
     Saw                 :: Component Item
     Hammer              :: Component Item
     Axe                 :: Component Item
+    Dummy               :: Component a
 
 deriving instance Show (Component a)
 deriving instance Eq (Component a)
 
 feature :: Feature Component
 feature = \case
-    (ComponentFor E.Saw)            -> Saw
-    (ComponentFor E.Hammer)         -> Hammer
-    (ComponentFor E.Axe)            -> Axe
-    (ComponentFor E.PlayerCharacter)-> PlayerCharacter
+    (ComponentFor E.Wall)               -> Wall
+    (ComponentFor E.Tree)               -> Tree
+    (ComponentFor E.Lumber)             -> Lumber
+    (ComponentFor E.Planks)             -> Planks
+    (ComponentFor E.Saw)                -> Saw
+    (ComponentFor E.Hammer)             -> Hammer
+    (ComponentFor E.Axe)                -> Axe
+    (ComponentFor _)                    -> Dummy
 
-    InitItems                       -> [E.Saw
-                                       ,E.Hammer
-                                       ,E.Axe
-                                       ]
+    InitItems                           -> [E.Saw
+                                           ,E.Hammer
+                                           ,E.Axe
+                                           ]
 
-    (Symbol Wall)                   -> "#"
-    (Symbol Tree)                   -> "^"
-    (Symbol PlayerCharacter)        -> "@"
-    (Symbol Dummy)                  -> " "
+    (Symbol Wall)                       -> "#"
+    (Symbol Tree)                       -> "^"
+    (Symbol Dummy)                      -> ""
 
-    (Command 's' fn)                -> (:[]) . fn $ do
+    (Command 's' fn)                    -> (:[]) . fn $ do
         shortDescription "Saw lumber"
-        requireItem NoConsume Saw
+        requireItem Saw
         target $ InventoryItem $ \item -> do
             guard (item == Lumber)
-            replaceWith Planks
-    (Command 'b' fn)                -> (:[]) . fn $ do
+            replaceWith (Planks, E.Planks)
+    (Command 'b' fn)                    -> (:[]) . fn $ do
         shortDescription "Build a wall"
-        requireItem NoConsume Hammer
-        requireItem Consume Planks
-        target $ EmptySpace $ replaceWith Wall
-    (Command 'c' fn)                -> (:[]) . fn $ do
+        requireItem Hammer
+        consumeItem Planks
+        target $ EmptySpace $ replaceWith (Wall, E.Wall)
+    (Command 'c' fn)                    -> (:[]) . fn $ do
         shortDescription "Chop down trees"
-        requireItem NoConsume Axe
+        requireItem Axe
         target $ NearObject $ \object -> do
             guard (object == Tree)
             yieldItem Lumber
             destroy
-    (Command _ fn)                  -> (:[]) . fn $ disabled
+    (Command _ _)                       -> []
 
-    (Eq a b)                        -> a == b
+    (Eq a b)                            -> a == b

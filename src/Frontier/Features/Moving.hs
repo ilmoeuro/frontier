@@ -9,9 +9,11 @@ module Frontier.Features.Moving
 -- import Control.Monad
 import Frontier.Feature
 import Frontier.Feature.Action
+import qualified Frontier.Feature.Entity as E
 -- import Frontier.Feature.Qualifier
 
 data Component a where
+    PlayerCharacter     :: Component a
     Dummy               :: Component a
 
 deriving instance Show (Component a)
@@ -19,6 +21,7 @@ deriving instance Eq (Component a)
 
 feature :: Feature Component
 feature = \case
+    (ComponentFor E.PlayerCharacter)-> PlayerCharacter
     (ComponentFor _)                -> Dummy
 
     InitItems                       -> []
@@ -35,8 +38,9 @@ feature = \case
     (Command 'l' fn)                -> (:[]) . fn $ do
         shortDescription "Move west"
         me >>= move W
-    (Command _ fn)                  -> (:[]) . fn $ disabled
+    (Command _ _)                   -> []
 
-    (Symbol Dummy)                  -> " "
+    (Symbol PlayerCharacter)        -> "@"
+    (Symbol Dummy)                  -> ""
 
     (Eq a b)                        -> a == b

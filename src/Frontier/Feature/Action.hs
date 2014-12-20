@@ -15,27 +15,34 @@ module Frontier.Feature.Action
     -- ActionM actions
     ,shortDescription
     ,target
-    ,requireItem
     ,yieldItem
     ,me
     ,move
     -- Pseudo actions
     ,disabled
     ,retain
+    ,modify
     ,replaceWith
     ,destroy
+    ,requireItem
+    ,consumeItem
     ) where
 
 import Control.Monad
 import Control.Monad.Free.TH
 import Control.Monad.Trans.Free
+import Frontier.Feature.Entity
 import Frontier.Feature.Qualifier
 
 data Consuming = Consume | NoConsume
     deriving (Eq, Enum, Bounded, Show)
 data Direction = N | NE | E | SE | S | SW | W | NW
     deriving (Eq, Enum, Bounded, Show)
-data Outcome a b = Retain | ReplaceWith (a b) | Destroy
+data Outcome a b
+    = Retain
+    | Modify (a b)
+    | ReplaceWith (a b, Seed b)
+    | Destroy
     deriving (Show)
 data Targeting a
     = InventoryItem (a Item -> ActionM a (Outcome a Item))
@@ -48,7 +55,7 @@ data ActionF a next
     = ShortDescription String next
     -- Item actions
     | Target (Targeting a) next
-    | RequireItem Consuming (a Item) next
+    | UseItem Consuming (a Item) next
     | YieldItem (a Item) next
     -- Object actions
     | Me (a Object -> next)
@@ -69,8 +76,17 @@ disabled = mzero
 retain :: ActionM a (Outcome a b)
 retain = return Retain
 
-replaceWith :: a b -> ActionM a (Outcome a b)
+modify :: a b -> ActionM a (Outcome a b)
+modify = return . Modify
+
+replaceWith :: (a b, Seed b) -> ActionM a (Outcome a b)
 replaceWith = return . ReplaceWith
 
 destroy :: ActionM a (Outcome a b)
 destroy = return Destroy
+
+requireItem :: a Item -> Action a
+requireItem = useItem NoConsume
+
+consumeItem :: a Item -> Action a
+consumeItem = useItem Consume
