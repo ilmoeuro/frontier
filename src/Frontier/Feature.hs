@@ -6,6 +6,11 @@ module Frontier.Feature
     (Query(..)
     ,Feature
     ,(:<+>)()
+    ,componentFor
+    ,initItems
+    ,symbol
+    ,command
+    ,eq
     ,(<+>)
     ) where
 
@@ -24,6 +29,21 @@ type Feature a = forall result. Query a result -> result
 
 data (:<+>) a b c = (:<+>) (a c) (b c)
 infixl 5 :<+>
+
+componentFor :: Feature a -> Seed b -> a b
+componentFor f = f.ComponentFor
+
+initItems :: Feature a -> [Seed Item]
+initItems f = f InitItems
+
+symbol :: Feature a -> a Object -> String
+symbol f = f.Symbol
+
+command :: Feature a -> Char -> (forall a'. ActionM a' () -> b) -> [b]
+command f c fn = f (Command c fn)
+
+eq :: Feature a -> a b -> a b -> Bool
+eq f a b = f (Eq a b)
 
 (<+>) :: Feature a ->  Feature b -> Feature (a :<+> b)
 (<+>) f g (ComponentFor x)              = f (ComponentFor x) :<+> g (ComponentFor x)

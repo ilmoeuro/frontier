@@ -28,14 +28,11 @@ deriving instance Eq (Component a)
 
 feature :: Feature Component
 feature = \case
-    (ComponentFor E.Wall)               -> Wall
-    (ComponentFor E.Tree)               -> Tree
-    (ComponentFor E.Lumber)             -> Lumber
-    (ComponentFor E.Planks)             -> Planks
-    (ComponentFor E.Saw)                -> Saw
-    (ComponentFor E.Hammer)             -> Hammer
-    (ComponentFor E.Axe)                -> Axe
-    (ComponentFor _)                    -> Dummy
+    (ComponentFor entity)               -> case entity of
+        E.Saw       -> Saw
+        E.Hammer    -> Hammer
+        E.Axe       -> Axe
+        _           -> Dummy
 
     InitItems                           -> [E.Saw
                                            ,E.Hammer
@@ -51,12 +48,14 @@ feature = \case
         requireItem Saw
         target $ InventoryItem $ \item -> do
             guard (item == Lumber)
-            replaceWith (Planks, E.Planks)
+            replaceWith (Planks, E.Opaque)
+
     (Command 'b' fn)                    -> (:[]) . fn $ do
         shortDescription "Build a wall"
         requireItem Hammer
         consumeItem Planks
-        target $ EmptySpace $ replaceWith (Wall, E.Wall)
+        target $ EmptySpace $ replaceWith (Wall, E.Opaque)
+
     (Command 'c' fn)                    -> (:[]) . fn $ do
         shortDescription "Chop down trees"
         requireItem Axe
@@ -64,6 +63,7 @@ feature = \case
             guard (object == Tree)
             yieldItem Lumber
             destroy
+
     (Command _ _)                       -> []
 
     (Eq a b)                            -> a == b

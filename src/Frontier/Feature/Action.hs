@@ -47,7 +47,6 @@ data Outcome a b
 data Targeting a
     = InventoryItem (a Item -> ActionM a (Outcome a Item))
     | NearObject (a Object -> ActionM a (Outcome a Object))
-    | FarObject (a Object -> ActionM a (Outcome a Object))
     | EmptySpace (ActionM a (Outcome a Object))
 
 data ActionF a next
