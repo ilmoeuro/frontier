@@ -32,7 +32,6 @@ feature = \case
 
     (DoTurn _ _)                    -> []
 
-    -- TODO: better solution for blank comparisons
     (Eq Blank _)                    -> True
     (Eq _ Blank)                    -> True
     (Eq a b)                        -> a == b

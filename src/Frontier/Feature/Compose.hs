@@ -16,12 +16,6 @@ import Frontier.Feature.Entity (Seed (Blank))
 data (:<+>) a b c = (:<+>) (a c) (b c) deriving (Show, Eq)
 infixl 5 :<+>
 
-fst' :: (:<+>) a b c -> a c
-fst' (x :<+> _) = x
-
-snd' :: (:<+>) a b c -> b c
-snd' (_ :<+> x) = x
-
 promote :: forall a b d.
            (forall c. a c -> b c)
         -> (forall c. b c -> a c)
@@ -47,14 +41,15 @@ promote up down = iterTM $ \case
   where
     promoteTarget :: ActionM a (Outcome a c')
                   -> ActionM b (Outcome b c')
-    promoteTarget a = promote up down $ outcome up `fmap` a
-    outcome :: (a c' -> b c')
-            -> Outcome a c'
-            -> Outcome b c'
-    outcome _ Retain = Retain
-    outcome f (Modify x) = Modify (f x)
-    outcome f (ReplaceWith (x,y)) = ReplaceWith (f x,y)
-    outcome _ Destroy = Destroy
+    promoteTarget a = promote up down $ fmapOutcome up `fmap` a
+
+    fmapOutcome :: (a c' -> b c')
+                -> Outcome a c'
+                -> Outcome b c'
+    fmapOutcome _ Retain = Retain
+    fmapOutcome f (Modify x) = Modify (f x)
+    fmapOutcome f (ReplaceWith (x,y)) = ReplaceWith (f x,y)
+    fmapOutcome _ Destroy = Destroy
 
 split :: forall a b c.
          Feature a
@@ -64,13 +59,20 @@ split :: forall a b c.
          ,Action b -> c
          )
 split f g a =
-    (a . promote (:<+> empty') fst'
-    ,a . promote (empty :<+>) snd'
+    (a . promote (:<+> blank') fst'
+    ,a . promote (blank :<+>) snd'
     ) where
-        empty :: a d
-        empty = componentFor f Blank
-        empty' :: b d
-        empty' = componentFor g Blank
+        blank :: a d
+        blank = componentFor f Blank
+
+        blank' :: b d
+        blank' = componentFor g Blank
+
+        fst' :: (:<+>) a b d -> a d
+        fst' (x :<+> _) = x
+
+        snd' :: (:<+>) a b d -> b d
+        snd' (_ :<+> x) = x
 
 (<+>) :: Feature a ->  Feature b -> Feature (a :<+> b)
 (<+>) f g (ComponentFor x)

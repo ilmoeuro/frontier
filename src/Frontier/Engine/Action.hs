@@ -9,7 +9,6 @@ module Frontier.Engine.Action
 import Control.Monad
 import Control.Monad.Trans.Free
 import Data.Maybe
-import Debug.Trace (traceShow)
 import Frontier.Feature
 import Frontier.Feature.Action
 import Frontier.Feature.Qualifier
