@@ -32,9 +32,6 @@ feature = \case
 
     (DoTurn _ _)                    -> []
 
-    (Eq Blank _)                    -> True
-    (Eq _ Blank)                    -> True
-    (Eq a b)                        -> a == b
+    (Eq _ _)                        -> error "should be shadowed"
 
-    (PartialUpdate x Blank)         -> x
-    (PartialUpdate _ x)             -> x
+    (PartialUpdate _ _)             -> error "should be shadowed"

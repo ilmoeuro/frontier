@@ -63,10 +63,10 @@ split f g a =
     ,a . promote (blank :<+>) snd'
     ) where
         blank :: a d
-        blank = componentFor f Blank
+        blank = (f.ComponentFor) Blank
 
         blank' :: b d
-        blank' = componentFor g Blank
+        blank' = (g.ComponentFor) Blank
 
         fst' :: (:<+>) a b d -> a d
         fst' (x :<+> _) = x

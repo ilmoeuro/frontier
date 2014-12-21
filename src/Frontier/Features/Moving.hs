@@ -8,6 +8,7 @@ module Frontier.Features.Moving
 -- import Control.Monad
 import Frontier.Feature
 import Frontier.Feature.Action
+import Frontier.Feature.Base
 import qualified Frontier.Feature.Entity as E
 -- import Frontier.Feature.Qualifier
 
@@ -20,9 +21,8 @@ deriving instance Show (Component a)
 deriving instance Eq (Component a)
 
 feature :: Feature Component
-feature = \case
+feature = baseFeature (==) Blank $ \case
     (ComponentFor E.PlayerCharacter)-> PlayerCharacter
-    (ComponentFor E.Blank)          -> Blank
     (ComponentFor _)                -> Dummy
 
     InitItems                       -> []
@@ -46,9 +46,6 @@ feature = \case
     (Symbol PlayerCharacter)        -> "@"
     (Symbol _)                      -> ""
 
-    (Eq Blank _)                    -> True
-    (Eq _ Blank)                    -> True
-    (Eq a b)                        -> a == b
+    (Eq _ _)                        -> error "should be shadowed"
 
-    (PartialUpdate x Blank)         -> x
-    (PartialUpdate _ x)             -> x
+    (PartialUpdate _ _)             -> error "should be shadowed"

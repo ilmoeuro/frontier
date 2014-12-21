@@ -9,6 +9,7 @@ module Frontier.Features.Building
 import Control.Monad
 import Frontier.Feature
 import Frontier.Feature.Action
+import Frontier.Feature.Base
 import qualified Frontier.Feature.Entity as E
 import Frontier.Feature.Qualifier
 
@@ -27,12 +28,11 @@ deriving instance Show (Component a)
 deriving instance Eq (Component a)
 
 feature :: Feature Component
-feature = \case
+feature = baseFeature (==) Blank $ \case
     (ComponentFor entity)           -> case entity of
         E.Saw       -> Saw
         E.Hammer    -> Hammer
         E.Axe       -> Axe
-        E.Blank     -> Blank
         _           -> Dummy
 
     InitItems                       ->
@@ -70,9 +70,6 @@ feature = \case
 
     (DoTurn _ _)                    -> []
 
-    (Eq Blank _)                    -> True
-    (Eq _ Blank)                    -> True
-    (Eq a b)                        -> a == b
+    (Eq _ _)                        -> error "should be shadowed"
 
-    (PartialUpdate x Blank)         -> x
-    (PartialUpdate _ x)             -> x
+    (PartialUpdate _ _)             -> error "should be shadowed"

@@ -6,13 +6,8 @@
 module Frontier.Feature
     (Query(..)
     ,Feature
-    ,componentFor
-    ,initItems
-    ,symbol
-    ,command
-    ,doTurn
-    ,eq
-    ,partialUpdate
+    ,FeatureRec(..)
+    ,featureRec
     ) where
 
 import Frontier.Feature.Action
@@ -34,29 +29,25 @@ data Query a result where
 
 type Feature a = forall result. Query a result -> result
 
-componentFor :: Feature a -> Seed b -> a b
-componentFor f = f.ComponentFor
+data FeatureRec a = FeatureRec
+    {componentFor   :: forall b. Seed b -> a b
+    ,initItems      :: [Seed Item]
+    ,symbol         :: a Object -> String
+    ,command        :: forall c. Char -> (Action a -> c) -> [c]
+    ,doTurn         :: forall c. a Object -> (Action a -> c) -> [c]
+    ,eq             :: forall b. a b -> a b -> Bool
+    ,partialUpdate  :: forall b. a b -> a b -> a b
+    }
 
-initItems :: Feature a -> [Seed Item]
-initItems f = f InitItems
-
-symbol :: Feature a -> a Object -> String
-symbol f = f.Symbol
-
-command :: Feature a
-        -> Char
-        -> (ActionM a () -> c)
-        -> [c]
-command f c fn = f (Command c fn)
-
-doTurn :: Feature a
-       -> a Object
-       -> (ActionM a () -> c)
-       -> [c]
-doTurn f o fn = f (DoTurn o fn)
-
-eq :: Feature a -> a b -> a b -> Bool
-eq f a b = f (Eq a b)
-
-partialUpdate :: Feature a -> a b -> a b -> a b
-partialUpdate f a b = f (PartialUpdate a b)
+featureRec :: Feature a -> FeatureRec a
+featureRec f = FeatureRec
+    {componentFor   =  f .  ComponentFor
+    ,initItems      =  f    InitItems
+    ,symbol         =  f .  Symbol
+    ,command        =  f .: Command
+    ,doTurn         =  f .: DoTurn
+    ,eq             =  f .: Eq
+    ,partialUpdate  =  f .: PartialUpdate
+    }
+    where
+        (.:) = (.).(.)
