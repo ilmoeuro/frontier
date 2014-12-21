@@ -23,28 +23,29 @@ data Context a = Context
     }
 
 actionEnabled :: Context a -> Feature a -> ActionM a b -> Bool
-actionEnabled ctx@Context{neighbors,inventory,this} f = isJust .: iterT $ \case
-    (ShortDescription _ next)           -> next
-    (Target (InventoryItem fn) next)   -> do
-        let isEnabled i = actionEnabled ctx f (fn i)
-        guard . or $ map isEnabled inventory
-        next
-    (Target (NearObject fn) next)       -> do
-        let isEnabled o = actionEnabled ctx f (fn o)
-        guard . or $ map (isEnabled.snd) neighbors
-        next
-    (Target (EmptySpace fn) next)       -> do
-        guard $ length neighbors /= 8
-        guard $ actionEnabled ctx f fn
-        next
-    (UseItem _ itm next)                -> do
-        guard $ any (itm `eq`) inventory
-        next
-    (YieldItem _ next)                  -> next
-    (Me next)                           -> next this
-    (Move dir obj next)                 -> do
-        guard $ obj `eq` this
-        guard . isNothing $ lookup dir neighbors
-        next
-  where
-    FeatureRec{eq} = featureRec f
+actionEnabled
+  ctx@Context{neighbors,inventory,this}
+  f@Feature{eq}
+    = isJust .: iterT $ \case
+        (ShortDescription _ next)           -> next
+        (Target (InventoryItem fn) next)   -> do
+            let isEnabled i = actionEnabled ctx f (fn i)
+            guard . or $ map isEnabled inventory
+            next
+        (Target (NearObject fn) next)       -> do
+            let isEnabled o = actionEnabled ctx f (fn o)
+            guard . or $ map (isEnabled.snd) neighbors
+            next
+        (Target (EmptySpace fn) next)       -> do
+            guard $ length neighbors /= 8
+            guard $ actionEnabled ctx f fn
+            next
+        (UseItem _ itm next)                -> do
+            guard $ any (itm `eq`) inventory
+            next
+        (YieldItem _ next)                  -> next
+        (Me next)                           -> next this
+        (Move dir obj next)                 -> do
+            guard $ obj `eq` this
+            guard . isNothing $ lookup dir neighbors
+            next
