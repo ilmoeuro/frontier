@@ -1,19 +1,18 @@
 {-# LANGUAGE GADTs              #-}
 {-# LANGUAGE LambdaCase         #-}
+{-# LANGUAGE RecordWildCards    #-}
 {-# LANGUAGE StandaloneDeriving #-}
 module Frontier.Features.Moving
     (Component()
     ,feature) where
 
--- import Control.Monad
 import Frontier.Feature
 import Frontier.Feature.Action
-import Frontier.Feature.Base
 import qualified Frontier.Feature.Entity as E
--- import Frontier.Feature.Qualifier
+import Frontier.Feature.Qualifier
 
 data Component a where
-    PlayerCharacter     :: Component a
+    PlayerCharacter     :: Component Object
     Blank               :: Component a
     Dummy               :: Component a
 
@@ -21,31 +20,42 @@ deriving instance Show (Component a)
 deriving instance Eq (Component a)
 
 feature :: Feature Component
-feature = baseFeature (==) Blank $ \case
-    (ComponentFor E.PlayerCharacter)-> PlayerCharacter
-    (ComponentFor _)                -> Dummy
+feature = Feature{..} where
+    componentFor    :: E.Seed b -> Component b
+    componentFor    E.PlayerCharacter       = PlayerCharacter
+    componentFor    E.Blank                 = Blank
+    componentFor    _                       = Dummy
 
-    InitItems                       -> []
+    initItems       :: [E.Seed Item]
+    initItems                               = []
 
-    (Command 'h' fn)                -> (:[]) . fn $ do
+    symbol          :: Component Object -> String
+    symbol          PlayerCharacter         = "@"
+    symbol          _                       = ""
+
+    command         :: Char -> (Action Component -> c) -> [c]
+    command         'h'         fn          = (:[]) . fn $ do
         shortDescription "Move east"
         me >>= move E
-    (Command 'j' fn)                -> (:[]) . fn $ do
+    command         'j'         fn          = (:[]) . fn $ do
         shortDescription "Move south"
         me >>= move S
-    (Command 'k' fn)                -> (:[]) . fn $ do
+    command         'k'         fn          = (:[]) . fn $ do
         shortDescription "Move north"
         me >>= move N
-    (Command 'l' fn)                -> (:[]) . fn $ do
+    command         'l'         fn          = (:[]) . fn $ do
         shortDescription "Move west"
         me >>= move W
-    (Command _ _)                   -> []
+    command         _           _           = []
 
-    (DoTurn _ _)                    -> []
+    doTurn          :: Component Object -> (Action Component -> c) -> [c]
+    doTurn          _           _           = []
 
-    (Symbol PlayerCharacter)        -> "@"
-    (Symbol _)                      -> ""
+    eq              :: Component a -> Component a -> Bool
+    eq              Blank       _           = True
+    eq              _           Blank       = True
+    eq              a           b           = a == b
 
-    (Eq _ _)                        -> error "should be shadowed"
-
-    (PartialUpdate _ _)             -> error "should be shadowed"
+    partialUpdate   :: Component a -> Component a -> Component a
+    partialUpdate   Blank       x           = x
+    partialUpdate   x           _           = x

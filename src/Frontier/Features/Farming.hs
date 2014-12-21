@@ -1,6 +1,7 @@
 {-# LANGUAGE GADTs              #-}
 {-# LANGUAGE LambdaCase         #-}
 {-# LANGUAGE OverloadedStrings  #-}
+{-# LANGUAGE RecordWildCards    #-}
 {-# LANGUAGE StandaloneDeriving #-}
 module Frontier.Features.Farming
     (Component()
@@ -20,18 +21,21 @@ deriving instance Show (Component a)
 deriving instance Eq (Component a)
 
 feature :: Feature Component
-feature = \case
-    (ComponentFor E.Blank)          -> Blank
-    (ComponentFor _)                -> Dummy
+feature = Feature{..} where
+    componentFor    E.Blank                 = Blank
+    componentFor    _                       = Dummy
 
-    InitItems                       -> []
+    initItems                               = []
 
-    (Symbol _)                      -> ""
+    symbol          _                       = ""
 
-    (Command _ _)                   -> []
+    command         _           _           = []
 
-    (DoTurn _ _)                    -> []
+    doTurn          _           _           = []
 
-    (Eq _ _)                        -> error "should be shadowed"
+    eq              Blank       _           = True
+    eq              _           Blank       = True
+    eq              a           b           = a == b
 
-    (PartialUpdate _ _)             -> error "should be shadowed"
+    partialUpdate   Blank       x           = x
+    partialUpdate   x           _           = x

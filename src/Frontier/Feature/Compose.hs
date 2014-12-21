@@ -63,10 +63,10 @@ split f g a =
     ,a . promote (blank :<+>) snd'
     ) where
         blank :: a d
-        blank = (f.ComponentFor) Blank
+        blank = componentFor f Blank
 
         blank' :: b d
-        blank' = (g.ComponentFor) Blank
+        blank' = componentFor g Blank
 
         fst' :: (:<+>) a b d -> a d
         fst' (x :<+> _) = x
@@ -75,18 +75,22 @@ split f g a =
         snd' (_ :<+> x) = x
 
 (<+>) :: Feature a ->  Feature b -> Feature (a :<+> b)
-(<+>) f g (ComponentFor x)
-    = f (ComponentFor x) :<+> g (ComponentFor x)
-(<+>) f g InitItems
-    = f InitItems ++ g InitItems
-(<+>) f g (Symbol (x :<+> y))
-    = f (Symbol x) ++ g (Symbol y)
-(<+>) f g (Command x y)
-    = let (y', y'') = split f g y in f (Command x y') ++ g (Command x y'')
-(<+>) f g (DoTurn (x :<+> y) z)
-    = let (z', z'') = split f g z in f (DoTurn x z') ++ g (DoTurn y z'')
-(<+>) f g (Eq (x :<+> y) (x' :<+> y'))
-    = f (Eq x x') && g (Eq y y')
-(<+>) f g (PartialUpdate (x :<+> y) (x' :<+> y'))
-    = f (PartialUpdate x x') :<+> g (PartialUpdate y y')
+(<+>) f g = Feature
+    {componentFor = \x ->
+        componentFor f x :<+> componentFor g x
+    ,initItems =
+        initItems f ++ initItems g
+    ,symbol = \(x :<+> y) ->
+        symbol f x ++ symbol g y
+    ,command = \x y ->
+        let (y', y'') = split f g y
+        in command f x y' ++ command g x y''
+    ,doTurn = \(x :<+> y) z ->
+        let (z', z'') = split f g z
+        in doTurn f x z' ++ doTurn g y z''
+    ,eq = \(x :<+> y) (x' :<+> y') ->
+        eq f x x' && eq g y y'
+    ,partialUpdate = \(x :<+> y) (x' :<+> y') ->
+        partialUpdate f x x' :<+> partialUpdate g y y'
+    }
 infixl 5 <+>

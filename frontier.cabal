@@ -24,5 +24,4 @@ executable frontier
                    Frontier.Feature.Compose,
                    Frontier.Features.Building,
                    Frontier.Features.Farming,
-                   Frontier.Features.Moving,
-                   Frontier.Feature.Base
+                   Frontier.Features.Moving
