@@ -45,7 +45,6 @@ actionEnabled
             next
         (YieldItem _ next)                  -> next
         (Me next)                           -> next this
-        (Move dir obj next)                 -> do
-            guard $ obj `eq` this
+        (Move dir next)                     -> do
             guard . isNothing $ lookup dir neighbors
             next

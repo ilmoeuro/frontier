@@ -36,16 +36,16 @@ feature = Feature{..} where
     command         :: Char -> (Action Component -> c) -> [c]
     command         'h'         fn          = (:[]) . fn $ do
         shortDescription "Move east"
-        me >>= move E
+        move E
     command         'j'         fn          = (:[]) . fn $ do
         shortDescription "Move south"
-        me >>= move S
+        move S
     command         'k'         fn          = (:[]) . fn $ do
         shortDescription "Move north"
-        me >>= move N
+        move N
     command         'l'         fn          = (:[]) . fn $ do
         shortDescription "Move west"
-        me >>= move W
+        move W
     command         _           _           = []
 
     doTurn          :: Component Object -> (Action Component -> c) -> [c]

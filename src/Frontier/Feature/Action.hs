@@ -56,7 +56,7 @@ data ActionF a next
     | UseItem Consuming (a Item) next
     | YieldItem (a Item) next
     | Me (a Object -> next)
-    | Move Direction (a Object) next
+    | Move Direction next
     deriving (Functor)
 
 instance Show (ActionF a next) where

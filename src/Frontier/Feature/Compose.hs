@@ -36,8 +36,8 @@ promote up down = iterTM $ \case
         yieldItem (up i) >> n
     (Me n) ->
         (down `fmap` me) >>= n
-    (Move d o n) ->
-        move d (up o) >> n
+    (Move d n) ->
+        move d >> n
   where
     promoteTarget :: ActionM a (Outcome a c')
                   -> ActionM b (Outcome b c')
