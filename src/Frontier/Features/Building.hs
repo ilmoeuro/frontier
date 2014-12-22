@@ -61,7 +61,7 @@ feature = Feature{..} where
         requireItem Axe
         target $ NearObject $ \object -> do
             guard (object == Tree)
-            yieldItem Lumber
+            yieldItem (Lumber, E.Opaque)
             destroy
     command         _           _           = []
 

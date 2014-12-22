@@ -25,24 +25,3 @@ executable frontier
                    Frontier.Features.Building,
                    Frontier.Features.Farming,
                    Frontier.Features.Moving
-
-test-suite FrontierTests
-  type:            exitcode-stdio-1.0
-  main-is:         FrontierTests.hs
-  ghc-options:     -Wall -rtsopts
-  build-depends:   base >= 4, HTF > 0.9
-  other-modules:   
-                  Frontier.Features.Farming,
-                  Frontier.Features.FarmingTest,
-                  Frontier.Features.Moving,
-                  Frontier.Features.MovingTest,
-                  Frontier.Features.Building,
-                  Frontier.Features.BuildingTest,
-                  Frontier.Engine.Action,
-                  Frontier.Engine.ActionTest,
-                  Frontier.Feature.Compose,
-                  Frontier.Feature.ComposeTest
-  hs-source-dirs:  
-                  src,
-                  test-src
-

@@ -32,8 +32,8 @@ promote up down = iterTM $ \case
         target (EmptySpace $ promoteTarget a) >> n
     (UseItem c i n) ->
         useItem c (up i) >> n
-    (YieldItem i n) ->
-        yieldItem (up i) >> n
+    (YieldItem (i,s) n) ->
+        yieldItem (up i,s) >> n
     (Me n) ->
         (down `fmap` me) >>= n
     (Move d n) ->

@@ -54,7 +54,7 @@ data ActionF a next
     = ShortDescription String next
     | Target (Targeting a) next
     | UseItem Consuming (a Item) next
-    | YieldItem (a Item) next
+    | YieldItem (a Item, Seed Item) next
     | Me (a Object -> next)
     | Move Direction next
     deriving (Functor)
