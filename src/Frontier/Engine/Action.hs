@@ -1,17 +1,22 @@
-{-# LANGUAGE LambdaCase     #-}
-{-# LANGUAGE NamedFieldPuns #-}
-{-# LANGUAGE RankNTypes     #-}
+{-# LANGUAGE LambdaCase       #-}
+{-# LANGUAGE NamedFieldPuns   #-}
+{-# LANGUAGE RankNTypes       #-}
+{-# LANGUAGE FlexibleContexts #-}
 module Frontier.Engine.Action
     (Context(..)
     ,actionEnabled
+    ,performAction
     ) where
 
 import Control.Monad
+import Control.Monad.State
 import Control.Monad.Trans.Free
 import Data.Maybe
+import Control.Lens hiding (Context)
 import Frontier.Feature
 import Frontier.Feature.Action
 import Frontier.Feature.Qualifier
+import qualified Frontier.Engine.Monad as M
 
 (.:) :: (b -> c) -> (a -> a1 -> b) -> a -> a1 -> c
 (.:) = (.).(.)
@@ -47,4 +52,32 @@ actionEnabled
         (Me next)                           -> next this
         (Move dir next)                     -> do
             guard . isNothing $ lookup dir neighbors
+            next
+
+performAction :: (MonadState (M.EngineState a) (t1 Maybe), 
+                  MonadTrans t1)
+              => Feature a 
+              -> ActionM a b 
+              -> t1 Maybe b 
+performAction
+    Feature{}
+    = iterTM $ \case -- TODO: actually do something
+        (ShortDescription _ next)           ->
+            next
+        (Target _ next)                     ->
+            next
+        (UseItem _ _ next)                  ->
+            next
+        (YieldItem _ next)                  ->
+            next
+        (Me next)                           ->
+            gets M.playerCharacter >>= next.snd
+        (Move dir next)                     -> do
+            case dir of 
+                N   -> M._playerCharacter._1._2 -= 1
+                E   -> M._playerCharacter._1._1 += 1
+                S   -> M._playerCharacter._1._2 += 1
+                W   -> M._playerCharacter._1._1 -= 1
+                -- TODO: other directions
+                _   -> return ()
             next
