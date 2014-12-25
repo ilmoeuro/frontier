@@ -1,5 +1,6 @@
 {-# LANGUAGE DeriveFunctor              #-}
 {-# LANGUAGE FlexibleContexts           #-}
+{-# LANGUAGE FlexibleInstances          #-}
 {-# LANGUAGE GADTs                      #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE MultiParamTypeClasses      #-}
@@ -75,12 +76,12 @@ makeFree ''ActionF
 newtype ActionT a m b = ActionT
     { unActionT :: (FreeT (ActionF a) (MaybeT m)) b
     }
-deriving instance Monad m => Functor (ActionT a m)
-deriving instance Monad m => Applicative (ActionT a m)
-deriving instance Monad m => Alternative (ActionT a m)
-deriving instance Monad m => Monad (ActionT a m)
-deriving instance Monad m => MonadPlus (ActionT a m)
-deriving instance Monad m => MonadFree (ActionF a) (ActionT a m)
+deriving instance Monad m           => Functor (ActionT a m)
+deriving instance Monad m           => Applicative (ActionT a m)
+deriving instance Monad m           => Alternative (ActionT a m)
+deriving instance Monad m           => Monad (ActionT a m)
+deriving instance Monad m           => MonadPlus (ActionT a m)
+deriving instance Monad m           => MonadFree (ActionF a) (ActionT a m)
 
 instance MonadTrans (ActionT a) where
     lift = ActionT . lift . lift

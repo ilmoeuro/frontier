@@ -23,6 +23,39 @@ data Context a = Context
     ,inventory          :: [a Item]
     ,this               :: a Object
     }
+    
+pass :: (MonadTrans t, Monad m, Monad (t m))
+     => ActionF a (t m b)
+     -> t m b
+pass = \case
+    (ShortDescription _ next)           ->
+        next
+    (TargetItem next)                   ->
+        next $ error "Frontier.Engine.Action.pass"
+    (TargetObject next)                 ->
+        next $ error "Frontier.Engine.Action.pass"
+    (TargetEmptySpace next)             ->
+        next
+    (ModifyTargetItem _ next)           ->
+        next
+    (ReplaceTargetItem _ next)          ->
+        next
+    (DestroyTargetItem next)            ->
+        next
+    (ModifyTargetObject _ next)         ->
+        next
+    (ReplaceTargetObject _ next)        ->
+        next
+    (DestroyTargetObject next)          ->
+        next
+    (UseItem _ _ next)                  ->
+        next
+    (YieldItem _ next)                  ->
+        next
+    (Me next)                           ->
+        next $ error "Frontier.Engine.Action.pass"
+    (Move _ next)                       ->
+        next
 
 actionEnabled :: forall a b.
                  Context a
@@ -49,11 +82,11 @@ actionEnabled
             (UseItem _ itm next)                -> do
                 guard $ any (itm `eq`) inventory
                 next
-            (YieldItem _ next)                  -> next
             (Me next)                           -> next this
             (Move dir next)                     -> do
                 guard . isNothing $ lookup dir neighbors
                 next
+            others                              -> pass others
 
 performAction :: MonadState (M.EngineState a) m 
               => Feature a 
@@ -61,26 +94,12 @@ performAction :: MonadState (M.EngineState a) m
               -> m (Maybe b)
 performAction
     Feature{}
-    = runActionT $ \case -- TODO: actually do something
-        (ShortDescription _ next)           ->
-            next
-        (TargetItem next)                   ->
-            undefined >>=
-            next
-        (TargetObject next)                 ->
-            undefined >>=
-            next
-        (TargetEmptySpace next)             ->
-            next
-        (UseItem _ _ next)                  ->
-            next
-        (YieldItem _ next)                  ->
-            next
+    = runActionT $ \case
         (Me next)                           -> do
             playerCharacter <- lift $ gets M.playerCharacter
             next (snd playerCharacter)
         (Move dir next)                     -> do
-            lift $ case dir of
+            lift $ case dir of
                 N   -> M._playerCharacter._1._2 -= 1
                 E   -> M._playerCharacter._1._1 += 1
                 S   -> M._playerCharacter._1._2 += 1
@@ -88,3 +107,4 @@ performAction
                 -- TODO: other directions
                 _   -> return ()
             next
+        others                              -> pass others
