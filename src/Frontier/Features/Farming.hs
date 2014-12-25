@@ -11,6 +11,7 @@ module Frontier.Features.Farming
 -- import Control.Monad
 import Frontier.Feature
 import qualified Frontier.Feature.Entity as E
+import Frontier.Feature.GenericMethods
 -- import Frontier.Feature.Qualifier
 
 data Component a where
@@ -33,9 +34,8 @@ feature = Feature{..} where
 
     doTurn          _           _           = []
 
-    eq              Blank       _           = True
-    eq              _           Blank       = True
-    eq              a           b           = a == b
+    eq              :: Component a -> Component a -> Bool
+    eq                                      = genericEq Blank
 
-    partialUpdate   Blank       x           = x
-    partialUpdate   x           _           = x
+    partialUpdate   :: Component a -> Component a -> Component a
+    partialUpdate                           = genericPartialUpdate Blank
