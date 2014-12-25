@@ -44,28 +44,29 @@ feature = Feature{..} where
     symbol          Tree                    = "^"
     symbol          _                       = ""
 
-    command         :: Char -> (Action Component -> c) -> [c]
+    command         :: Monad m => Char -> (ActionT Component m () -> c) -> [c]
     command         's'         fn          = (:[]) . fn $ do
         shortDescription "Saw lumber"
         requireItem Saw
-        target $ InventoryItem $ \item -> do
-            guard (item == Lumber)
-            replaceWith (Planks, E.Opaque)
+        item <- targetItem
+        guard (item == Lumber)
+        replaceTargetItem (Planks, E.Opaque)
     command         'b'         fn          = (:[]) . fn $ do
         shortDescription "Build a wall"
         requireItem Hammer
         consumeItem Planks
-        target $ EmptySpace $ replaceWith (Wall, E.Opaque)
+        targetEmptySpace
+        replaceTargetObject (Wall, E.Opaque)
     command         'c'         fn          = (:[]) . fn $ do
         shortDescription "Chop down trees"
         requireItem Axe
-        target $ NearObject $ \object -> do
-            guard (object == Tree)
-            yieldItem (Lumber, E.Opaque)
-            destroy
+        obj <- targetObject
+        guard (obj == Tree)
+        yieldItem (Lumber, E.Opaque)
+        destroyTargetObject
     command         _           _           = []
 
-    doTurn          :: Component Object -> (Action Component -> c) -> [c]
+    doTurn          :: Component Object -> (ActionT Component m () -> c) -> [c]
     doTurn          _           _           = []
 
     eq              :: Component a -> Component a -> Bool

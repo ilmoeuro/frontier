@@ -14,7 +14,8 @@ executable frontier
                    free >= 4.9 && < 5.0,
                    lens >= 4.6 && < 4.7,
                    transformers >= 0.3.0.0 && < 0.4,
-                   mtl >= 2.1 && < 2.2
+                   mtl >= 2.1 && < 2.2,
+                   operational >= 0.2 && < 0.3
   ghc-options:     -Wall
   other-modules:   
                    Frontier.Feature,

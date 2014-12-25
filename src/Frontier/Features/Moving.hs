@@ -33,7 +33,10 @@ feature = Feature{..} where
     symbol          PlayerCharacter         = "@"
     symbol          _                       = ""
 
-    command         :: Char -> (Action Component -> c) -> [c]
+    command         :: Monad m
+                    => Char
+                    -> (ActionT Component m () -> c)
+                    -> [c]
     command         'h'         fn          = (:[]) . fn $ do
         shortDescription "Move east"
         move E
@@ -48,7 +51,10 @@ feature = Feature{..} where
         move W
     command         _           _           = []
 
-    doTurn          :: Component Object -> (Action Component -> c) -> [c]
+    doTurn          :: Monad m
+                    => Component Object
+                    -> (ActionT Component m () -> c)
+                    -> [c]
     doTurn          _           _           = []
 
     eq              :: Component a -> Component a -> Bool

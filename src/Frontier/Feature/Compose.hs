@@ -1,4 +1,5 @@
 {-# LANGUAGE GADTs               #-}
+{-# LANGUAGE ImpredicativeTypes  #-}
 {-# LANGUAGE LambdaCase          #-}
 {-# LANGUAGE RankNTypes          #-}
 {-# LANGUAGE ScopedTypeVariables #-}
@@ -8,7 +9,6 @@ module Frontier.Feature.Compose
     ,(<+>)
     ) where
 
-import Control.Monad.Trans.Free
 import Frontier.Feature
 import Frontier.Feature.Action
 import Frontier.Feature.Entity (Seed (Blank))
@@ -16,51 +16,17 @@ import Frontier.Feature.Entity (Seed (Blank))
 data (:<+>) a b c = (:<+>) (a c) (b c) deriving (Show, Eq)
 infixl 5 :<+>
 
-promote :: forall a b d.
-           (forall c. a c -> b c)
-        -> (forall c. b c -> a c)
-        -> ActionM a d
-        -> ActionM b d
-promote up down = iterTM $ \case
-    (ShortDescription x n) ->
-        shortDescription x >> n
-    (Target (InventoryItem a) n) ->
-        target (InventoryItem $ \i -> promoteTarget $ a (down i)) >> n
-    (Target (NearObject a) n) ->
-        target (NearObject $ \o -> promoteTarget $ a (down o)) >> n
-    (Target (EmptySpace a) n) ->
-        target (EmptySpace $ promoteTarget a) >> n
-    (UseItem c i n) ->
-        useItem c (up i) >> n
-    (YieldItem (i,s) n) ->
-        yieldItem (up i,s) >> n
-    (Me n) ->
-        (down `fmap` me) >>= n
-    (Move d n) ->
-        move d >> n
-  where
-    promoteTarget :: ActionM a (Outcome a c')
-                  -> ActionM b (Outcome b c')
-    promoteTarget a = promote up down $ fmapOutcome up `fmap` a
-
-    fmapOutcome :: (a c' -> b c')
-                -> Outcome a c'
-                -> Outcome b c'
-    fmapOutcome _ Retain = Retain
-    fmapOutcome f (Modify x) = Modify (f x)
-    fmapOutcome f (ReplaceWith (x,y)) = ReplaceWith (f x,y)
-    fmapOutcome _ Destroy = Destroy
-
-split :: forall a b c.
-         Feature a
+split :: forall a b c m.
+         Monad m
+      => Feature a
       -> Feature b
-      -> (Action (a :<+> b) -> c)
-      -> (Action a -> c
-         ,Action b -> c
+      -> (ActionT (a :<+> b) m () -> c)
+      -> (ActionT a m () -> c
+         ,ActionT b m () -> c
          )
 split f g a =
-    (a . promote (:<+> blank') fst'
-    ,a . promote (blank :<+>) snd'
+    (a . transActionT (:<+> blank') fst'
+    ,a . transActionT (blank :<+>) snd'
     ) where
         blank :: a d
         blank = componentFor f Blank
