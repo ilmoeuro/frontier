@@ -1,5 +1,5 @@
 {-# LANGUAGE TemplateHaskell #-}
-module Frontier.Engine.Monad
+module Frontier.Engine.State
     (EngineState(..)
     ,_worldSize
     ,_world

@@ -15,7 +15,7 @@ executable frontier
                    lens >= 4.6 && < 4.7,
                    transformers >= 0.3.0.0 && < 0.4,
                    mtl >= 2.1 && < 2.2,
-                   operational >= 0.2 && < 0.3
+                   pipes >= 4.1 && < 4.2
   ghc-options:     -Wall
   other-modules:   
                    Frontier.Feature,
@@ -26,5 +26,6 @@ executable frontier
                    Frontier.Features.Building,
                    Frontier.Features.Farming,
                    Frontier.Features.Moving,
-                   Frontier.Engine.Monad,
-                   Frontier.Feature.GenericMethods
+                   Frontier.Feature.GenericMethods,
+                   Frontier.Engine.Pipe,
+                   Frontier.Engine.State

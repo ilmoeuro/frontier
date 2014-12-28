@@ -9,11 +9,11 @@ module Frontier.Engine.Action
     ,performAction
     ) where
 
-import Control.Lens hiding (Context, Action)
+import Control.Lens hiding (Action, Context)
 import Control.Monad
 import Control.Monad.State
 import Data.Maybe
-import qualified Frontier.Engine.Monad as M
+import qualified Frontier.Engine.State as M
 import Frontier.Feature
 import Frontier.Feature.Action
 import Frontier.Feature.Qualifier
@@ -23,7 +23,7 @@ data Context a = Context
     ,inventory          :: [a Item]
     ,this               :: a Object
     }
-    
+
 pass :: (MonadTrans t, Monad m, Monad (t m))
      => ActionF a (t m b)
      -> t m b
@@ -88,8 +88,10 @@ actionEnabled
                 next
             others                              -> pass others
 
-performAction :: MonadState (M.EngineState a) m 
-              => Feature a 
+performAction :: (MonadState (M.EngineState a) m
+                 ,Monad m
+                 )
+              => Feature a
               -> ActionT a m b
               -> m (Maybe b)
 performAction
