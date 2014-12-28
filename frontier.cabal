@@ -27,5 +27,5 @@ executable frontier
                    Frontier.Features.Farming,
                    Frontier.Features.Moving,
                    Frontier.Feature.GenericMethods,
-                   Frontier.Engine.Pipe,
-                   Frontier.Engine.State
+                   Frontier.Engine.World,
+                   Frontier.Engine.Monad
