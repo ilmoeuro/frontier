@@ -1,0 +1,2 @@
+module Frontier.Input where
+

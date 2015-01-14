@@ -15,17 +15,15 @@ executable frontier
                    lens >= 4.6 && < 4.7,
                    transformers >= 0.3.0.0 && < 0.4,
                    mtl >= 2.1 && < 2.2,
-                   pipes >= 4.1 && < 4.2
+                   pipes >= 4.1 && < 4.2,
+                   pretty-show >= 1.6 && < 1.7,
+                   extra >= 1.0 && < 1.1,
+                   safe >= 0.3 && < 0.4,
+                   cond >= 0.4 && < 0.5
   ghc-options:     -Wall
   other-modules:   
-                   Frontier.Feature,
-                   Frontier.Feature.Action,
-                   Frontier.Feature.Entity,
-                   Frontier.Feature.Qualifier,
-                   Frontier.Feature.Compose,
-                   Frontier.Features.Building,
-                   Frontier.Features.Farming,
-                   Frontier.Features.Moving,
-                   Frontier.Feature.GenericMethods,
-                   Frontier.Engine.World,
-                   Frontier.Engine.Monad
+                   Frontier.Data,
+                   Frontier.Monad,
+                   Frontier.Actions,
+                   Frontier.Input,
+                   Frontier.MainLoop
