@@ -7,6 +7,7 @@ module Frontier.Model.Dynamic.Actions
     (move
     ,chop
     ,build
+    ,smash
     ) where
 
 import Control.Conditional (guardM)
@@ -64,3 +65,9 @@ build dir = try $ do
     guardM . gets $ elem Hammer . items
     _items %= removeFirst (== Lumber)
     _neighbor dir .= Just Wall
+
+smash :: MonadState World m => Direction -> m ()
+smash dir = try $ do
+    guardM . gets $ elem Hammer . items
+    guardM . use $ _neighbor dir . to (== Just Wall)
+    _neighbor dir .= Nothing

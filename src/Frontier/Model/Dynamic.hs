@@ -16,5 +16,6 @@ run = get >>= display >> go
         (Move d)    -> move d   >> continue
         (Chop d)    -> chop d   >> continue
         (Build d)   -> build d  >> continue
+        (Smash d)   -> smash d  >> continue
         Quit        -> return ()
     continue = get >>= display >> go

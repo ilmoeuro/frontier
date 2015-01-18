@@ -15,6 +15,7 @@ data Input
     = Move Direction
     | Chop Direction
     | Build Direction
+    | Smash Direction
     | Quit
 
 data Output

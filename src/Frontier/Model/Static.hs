@@ -18,6 +18,12 @@ import Control.Lens.TH
 import Data.Map (Map, fromList)
 import System.Random
 
+_ROWS :: Int
+_ROWS = 23
+
+_COLS :: Int
+_COLS = 79
+
 data Direction = N | E | S | W deriving (Read, Show)
 
 data Object
@@ -31,11 +37,11 @@ data Item
     | Axe
     | Hammer
     | Lumber
-    deriving (Read, Show, Eq)
+    deriving (Read, Show, Ord, Eq)
 
 data World = World
     { objects :: Map (Int, Int) Object
-    , items :: [Item]
+    , items :: [Item] -- TODO: Multiset
     , playerCharacter :: ((Int, Int), Object)
     }
     deriving (Read, Show)
@@ -56,10 +62,10 @@ defaultWorld = World
     where
         initialObjects = fromList $ randomTrees ++ walls
         walls =  map (,Wall)
-                    ([(x,0)     | x <- [0..79]]
-                  ++ [(x,23)    | x <- [0..79]]
-                  ++ [(0,y)     | y <- [1..22]]
-                  ++ [(79,y)    | y <- [1..22]])
+                    ([(x,0)         | x <- [0.._COLS]]
+                  ++ [(x,_ROWS-1)   | x <- [0.._COLS]]
+                  ++ [(0,y)         | y <- [1.._ROWS-2]]
+                  ++ [(_COLS,y)     | y <- [1.._ROWS-2]])
         randomTrees = map (,Tree) . take 100 $ zip
-            (randomRs (1,79) (mkStdGen 0))
-            (randomRs (1,22) (mkStdGen 1))
+            (randomRs (1,_COLS-2) (mkStdGen 0))
+            (randomRs (1,_ROWS-2) (mkStdGen 1))
