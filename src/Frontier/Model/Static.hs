@@ -2,6 +2,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE PatternGuards     #-}
 {-# LANGUAGE TemplateHaskell   #-}
+{-# LANGUAGE TupleSections     #-}
 module Frontier.Model.Static
     (Direction(..)
     ,Object(..)
@@ -10,11 +11,13 @@ module Frontier.Model.Static
     ,_objects
     ,_items
     ,_playerCharacter
+    ,symbol
     ,defaultWorld
     ) where
 
 import Control.Lens.TH
-import Data.Map (Map, empty)
+import Data.Map (Map, fromList)
+import System.Random
 
 data Direction = N | E | S | W deriving (Read, Show)
 
@@ -47,7 +50,17 @@ makeLensesFor
 
 defaultWorld :: World
 defaultWorld = World
-    { objects = empty
+    { objects = randomTrees
     , items = []
     , playerCharacter = ((0,0), PlayerCharacter)
     }
+    where
+        randomTrees = fromList . map (,Tree) . take 50 $ zip
+            (randomRs (0,80) (mkStdGen 0))
+            (randomRs (0,23) (mkStdGen 1))
+
+
+symbol :: Object -> Char
+symbol Wall = '#'
+symbol Tree = '^'
+symbol PlayerCharacter = '@'

@@ -9,9 +9,9 @@ import Control.Concurrent.Chan
 import Control.Monad
 import Control.Monad.Managed
 import Data.Default
-import Debug.Trace
+import Data.Map (assocs)
 import qualified Frontier.Model.Dynamic.Interface as Dy
-import Frontier.Model.Static (World (..), playerCharacter)
+import Frontier.Model.Static (World (..), objects, playerCharacter)
 import qualified Frontier.Model.Static as St
 import Graphics.Vty
 import MVC hiding (Input)
@@ -48,13 +48,20 @@ keyboardInput events =
 
 vtyOutput :: (Picture -> IO ()) -> Managed (View Dy.Output)
 vtyOutput update = consumer . forever $ await >>= \case
-    (Dy.Display (World{playerCharacter})) ->
+    (Dy.Display (World{playerCharacter,objects})) ->
         liftIO
         . update
-        . picForImage
-        . uncurry translate (fst playerCharacter)
-        . char def
-        $ '@'
+        . picForLayers
+        $ layers
+      where
+        pcLayer = uncurry translate (fst playerCharacter)
+                . char def
+                $ '@'
+        objLayers = map $ \((x,y),obj) -> translate x y
+                                        . char def
+                                        . St.symbol
+                                        $ obj
+        layers = pcLayer : objLayers (assocs objects)
 
 io :: Managed (View Dy.Output, Controller Dy.Input)
 io = getVty >>= \Vty{inputIface,update} ->
