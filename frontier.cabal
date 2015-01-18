@@ -16,14 +16,18 @@ executable frontier
                    transformers >= 0.3.0.0 && < 0.4,
                    mtl >= 2.1 && < 2.2,
                    pipes >= 4.1 && < 4.2,
+                   mvc >= 1.0 && < 1.1,
+                   managed >= 1.0.0 && < 1.1,
                    pretty-show >= 1.6 && < 1.7,
                    extra >= 1.0 && < 1.1,
                    safe >= 0.3 && < 0.4,
-                   cond >= 0.4 && < 0.5
-  ghc-options:     -Wall
+                   cond >= 0.4 && < 0.5,
+                   data-default >= 0.5.3 && < 0.6,
+                   vty >= 5.2.6 && < 5.3
+  ghc-options:     -Wall -threaded
   other-modules:   
-                   Frontier.Data,
-                   Frontier.Monad,
-                   Frontier.Actions,
-                   Frontier.Input,
-                   Frontier.MainLoop
+                   Frontier.Model.Static,
+                   Frontier.Model.Dynamic,
+                   Frontier.Model.Dynamic.Actions,
+                   Frontier.Model.Dynamic.Interface,
+                   Frontier.IO

@@ -2,7 +2,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE PatternGuards     #-}
 {-# LANGUAGE TemplateHaskell   #-}
-module Frontier.Data
+module Frontier.Model.Static
     (Direction(..)
     ,Object(..)
     ,Item(..)
@@ -10,10 +10,11 @@ module Frontier.Data
     ,_objects
     ,_items
     ,_playerCharacter
+    ,defaultWorld
     ) where
 
 import Control.Lens.TH
-import Data.Map (Map)
+import Data.Map (Map, empty)
 
 data Direction = N | E | S | W deriving (Read, Show)
 
@@ -43,3 +44,10 @@ makeLensesFor
     ,("playerCharacter" ,"_playerCharacter")
     ]
     ''World
+
+defaultWorld :: World
+defaultWorld = World
+    { objects = empty
+    , items = []
+    , playerCharacter = ((0,0), PlayerCharacter)
+    }
