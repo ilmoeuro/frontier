@@ -11,7 +11,6 @@ module Frontier.Model.Static
     ,_objects
     ,_items
     ,_playerCharacter
-    ,symbol
     ,defaultWorld
     ) where
 
@@ -50,17 +49,17 @@ makeLensesFor
 
 defaultWorld :: World
 defaultWorld = World
-    { objects = randomTrees
-    , items = []
-    , playerCharacter = ((0,0), PlayerCharacter)
+    { objects = initialObjects
+    , items = [Axe, Saw, Hammer]
+    , playerCharacter = ((1,1), PlayerCharacter)
     }
     where
-        randomTrees = fromList . map (,Tree) . take 50 $ zip
-            (randomRs (0,80) (mkStdGen 0))
-            (randomRs (0,23) (mkStdGen 1))
-
-
-symbol :: Object -> Char
-symbol Wall = '#'
-symbol Tree = '^'
-symbol PlayerCharacter = '@'
+        initialObjects = fromList $ randomTrees ++ walls
+        walls =  map (,Wall)
+                    ([(x,0)     | x <- [0..79]]
+                  ++ [(x,23)    | x <- [0..79]]
+                  ++ [(0,y)     | y <- [1..22]]
+                  ++ [(79,y)    | y <- [1..22]])
+        randomTrees = map (,Tree) . take 100 $ zip
+            (randomRs (1,79) (mkStdGen 0))
+            (randomRs (1,22) (mkStdGen 1))

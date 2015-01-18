@@ -24,7 +24,12 @@ getVty = managed $ \inside -> do
     shutdown
     return result
 
-data KeyIn = Dir St.Direction | Cmd Char | None
+symbol :: St.Object -> Char
+symbol St.Wall = '#'
+symbol St.Tree = '^'
+symbol St.PlayerCharacter = '@'
+
+data KeyIn = Dir St.Direction | Cmd Char | Quit | None
 
 keyboardInput :: Chan Event -> Managed (Controller Dy.Input)
 keyboardInput events =
@@ -34,6 +39,7 @@ keyboardInput events =
             EvKey (KChar 'k') _ -> return . Dir $ St.S
             EvKey (KChar 'l') _ -> return . Dir $ St.E
             EvKey (KChar c)   _ -> return . Cmd $ c
+            EvKey KEsc        _ -> return Quit
             _                   -> return None
         pass = return ()
     in producer Single . forever $ readKey >>= \case
@@ -44,6 +50,7 @@ keyboardInput events =
             (Cmd 'b')               -> readKey >>= \case
                 (Dir d)             -> yield (Dy.Build d)
                 _                   -> pass
+            Quit                    -> yield Dy.Quit
             _                       -> pass
 
 vtyOutput :: (Picture -> IO ()) -> Managed (View Dy.Output)
@@ -54,12 +61,13 @@ vtyOutput update = consumer . forever $ await >>= \case
         . picForLayers
         $ layers
       where
-        pcLayer = uncurry translate (fst playerCharacter)
+        ((px,py),pobj) = playerCharacter
+        pcLayer = translate px py
                 . char def
-                $ '@'
+                $ symbol pobj
         objLayers = map $ \((x,y),obj) -> translate x y
                                         . char def
-                                        . St.symbol
+                                        . symbol
                                         $ obj
         layers = pcLayer : objLayers (assocs objects)
 
