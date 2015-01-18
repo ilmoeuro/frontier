@@ -12,6 +12,7 @@ import Control.Monad.Managed
 import Data.Default
 import Data.List
 import Data.Map (assocs)
+import Debug.Trace
 import qualified Frontier.Model.Dynamic.Interface as Dy
 import Frontier.Model.Static (World (..), objects, playerCharacter)
 import qualified Frontier.Model.Static as St
@@ -41,7 +42,7 @@ combine = go . map (1,) where
     go (x : xs)                     = x : go xs
     go []                           = []
 
-data KeyIn = Dir St.Direction | Cmd Char | Quit | None
+data KeyIn = Repeat Int | Dir St.Direction | Cmd Char | Quit | None
 
 keyboardInput :: Chan Event -> Managed (Controller Dy.Input)
 keyboardInput events =
@@ -50,11 +51,17 @@ keyboardInput events =
             EvKey (KChar 'j') _ -> return . Dir $ St.N
             EvKey (KChar 'k') _ -> return . Dir $ St.S
             EvKey (KChar 'l') _ -> return . Dir $ St.E
+            EvKey (KChar c)   _
+                | c `elem` ['1'..'9']
+                                -> return . Repeat $ read (c:"")
             EvKey (KChar c)   _ -> return . Cmd $ c
             EvKey KEsc        _ -> return Quit
             _                   -> return None
         pass = return ()
     in producer Single . forever $ readKey >>= \case
+            (Repeat n)              -> readKey >>= \case
+                (Dir d)             -> replicateM_ n $ yield (Dy.Move d)
+                _                   -> pass
             (Dir d)                 -> yield (Dy.Move d)
             (Cmd 'c')               -> readKey >>= \case
                 (Dir d)             -> yield (Dy.Chop d)
