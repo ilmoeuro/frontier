@@ -19,7 +19,7 @@ executable frontier
                    pipes >= 4.1 && < 4.2,
                    mvc >= 1.0 && < 1.1,
                    managed >= 1.0.0 && < 1.1,
-                   pretty-show >= 1.6 && < 1.7,
+                   multiset >= 0.2 && < 0.3,
                    extra >= 1.0 && < 1.1,
                    safe >= 0.3 && < 0.4,
                    cond >= 0.4 && < 0.5,

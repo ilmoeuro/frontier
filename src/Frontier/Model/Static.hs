@@ -15,7 +15,10 @@ module Frontier.Model.Static
     ) where
 
 import Control.Lens.TH
-import Data.Map (Map, fromList)
+import Data.Map (Map)
+import qualified Data.Map as Map
+import Data.MultiSet (MultiSet)
+import qualified Data.MultiSet as MultiSet
 import System.Random
 
 _ROWS :: Int
@@ -41,7 +44,7 @@ data Item
 
 data World = World
     { objects :: Map (Int, Int) Object
-    , items :: [Item] -- TODO: Multiset
+    , items :: MultiSet Item
     , playerCharacter :: ((Int, Int), Object)
     }
     deriving (Read, Show)
@@ -56,11 +59,11 @@ makeLensesFor
 defaultWorld :: World
 defaultWorld = World
     { objects = initialObjects
-    , items = [Axe, Saw, Hammer]
+    , items = MultiSet.fromList [Saw, Hammer, Axe]
     , playerCharacter = ((1,1), PlayerCharacter)
     }
     where
-        initialObjects = fromList $ randomTrees ++ walls
+        initialObjects = Map.fromList $ randomTrees ++ walls
         walls =  map (,Wall)
                     ([(x,0)         | x <- [0.._COLS]]
                   ++ [(x,_ROWS-1)   | x <- [0.._COLS]]

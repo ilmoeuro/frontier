@@ -10,6 +10,7 @@ import Control.Monad.Managed
 import Data.Default
 import Data.List
 import Data.Map (assocs)
+import Data.MultiSet (toOccurList)
 import qualified Frontier.Model.Dynamic.Interface as Dy
 import Frontier.Model.Static (World (..), objects, playerCharacter)
 import qualified Frontier.Model.Static as St
@@ -22,15 +23,9 @@ symbol St.Wall              = '#'
 symbol St.Tree              = '^'
 symbol St.PlayerCharacter   = '@'
 
-printCombined :: Show a => (Int, a) -> String
-printCombined (1, a)    = show a
-printCombined (n, a)    = show a ++ " (x" ++ show n ++ ")"
-
-combine :: Eq a => [a] -> [(Int, a)]
-combine = go . map (1,) where
-    go ((n,a):(1,b):xs) | a == b    = go ((n+1, a) : xs)
-    go (x : xs)                     = x : go xs
-    go []                           = []
+showWithCount :: Show a => (a, Int) -> String
+showWithCount (a, 1)    = show a
+showWithCount (a, n)    = show a ++ " (x" ++ show n ++ ")"
 
 vtyOutput :: (Picture -> IO ()) -> Managed (View Dy.Output)
 vtyOutput update = consumer . forever $ await >>= \case
@@ -54,9 +49,8 @@ vtyOutput update = consumer . forever $ await >>= \case
         itemsLayer = translate 0 23
                    . string def
                    . intercalate ", "
-                   . map printCombined
-                   . combine
-                   . sort
+                   . map showWithCount
+                   . toOccurList
                    $ items
         layers = pcLayer
                : itemsLayer

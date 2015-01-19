@@ -14,6 +14,7 @@ import Control.Conditional (guardM)
 import Control.Lens
 import Control.Monad.State
 import Control.Monad.Trans.Maybe
+import qualified Data.MultiSet as Ms
 import Data.Maybe
 import Frontier.Model.Static
 
@@ -54,20 +55,20 @@ move dir = try $ do
 
 chop :: MonadState World m => Direction -> m ()
 chop dir = try $ do
-    guardM . gets $ elem Axe . items
+    guardM . gets $ Ms.member Axe . items
     guardM . use $ _neighbor dir . to (== Just Tree)
     _neighbor dir .= Nothing
-    _items %= (Lumber :)
+    _items %= Ms.insert Lumber
 
 build :: MonadState World m => Direction -> m ()
 build dir = try $ do
-    guardM . gets $ elem Lumber . items
-    guardM . gets $ elem Hammer . items
-    _items %= removeFirst (== Lumber)
+    guardM . gets $ Ms.member Lumber . items
+    guardM . gets $ Ms.member Hammer . items
+    _items %= Ms.delete Lumber
     _neighbor dir .= Just Wall
 
 smash :: MonadState World m => Direction -> m ()
 smash dir = try $ do
-    guardM . gets $ elem Hammer . items
+    guardM . gets $ Ms.member Hammer . items
     guardM . use $ _neighbor dir . to (== Just Wall)
     _neighbor dir .= Nothing
