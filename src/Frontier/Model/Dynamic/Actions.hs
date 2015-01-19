@@ -18,17 +18,11 @@ import qualified Data.MultiSet as Ms
 import Data.Maybe
 import Frontier.Model.Static
 
--- TODO: does this exist?
-removeFirst :: (a -> Bool) -> [a] -> [a]
-removeFirst p (x:xs) | p x          = xs
-                     | otherwise    = x : removeFirst p xs
-removeFirst _ []                    = []
-
 _neighbor' :: (Int, Int) -> Direction -> Lens' World (Maybe Object)
 _neighbor' (px,py) = \case
-    N -> _objects . at (px,py+1)
+    N -> _objects . at (px,py-1)
     E -> _objects . at (px+1,py)
-    S -> _objects . at (px,py-1)
+    S -> _objects . at (px,py+1)
     W -> _objects . at (px-1,py)
 
 _neighbor :: Direction -> Lens' World (Maybe Object)
@@ -45,9 +39,9 @@ move :: MonadState World m => Direction -> m ()
 move dir = try $ do
   guardM . use $ _neighbor dir . to (== Nothing)
   case dir of
-    N -> y += 1
+    N -> y -= 1
     E -> x += 1
-    S -> y -= 1
+    S -> y += 1
     W -> x -= 1
   where
     x = _playerCharacter._1._1
