@@ -32,6 +32,8 @@ mapKeyEvent (EvKey k _) = case k of
     (KChar 'c')   -> DirCmd Dy.Chop
     (KChar 'b')   -> DirCmd Dy.Build
     (KChar 's')   -> DirCmd Dy.Smash
+    (KChar 'u')   -> DirCmd Dy.Unbox
+    (KChar '?')   -> DirCmd Dy.Query
     (KChar c)     | c `elem` ['0'..'9']
                   -> Repeat $ read [c]
     (KChar 'q')   -> Quit

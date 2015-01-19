@@ -22,6 +22,7 @@ symbol :: St.Object -> Char
 symbol St.Wall              = '#'
 symbol St.Tree              = '^'
 symbol St.PlayerCharacter   = '@'
+symbol (St.Box _)           = '='
 
 showWithCount :: Show a => (a, Int) -> String
 showWithCount (a, 1)    = show a
@@ -29,29 +30,42 @@ showWithCount (a, n)    = show a ++ " (x" ++ show n ++ ")"
 
 vtyOutput :: (Picture -> IO ()) -> Managed (View Dy.Output)
 vtyOutput update = consumer . forever $ await >>= \case
-    (Dy.Display (World{playerCharacter,objects,items})) ->
+    (Dy.Display world) ->
         liftIO
         . update
         . picForLayers
-        $ layers
-      where
-        ((px,py),pobj) = playerCharacter
-        pcLayer = translate px py
-                . char def
-                . symbol
-                $ pobj
-        objLayers = map
-                  $ \((x,y),obj) ->
-                    translate x y
+        $ layers world ""
+    (Dy.Message msg world) ->
+        liftIO
+        . update
+        . picForLayers
+        $ layers world msg
+  where
+    layers world message =
+        let
+            World{playerCharacter,objects,items} = world
+            ((px,py),pobj) = playerCharacter
+            pcLayer = translate px py
                     . char def
                     . symbol
-                    $ obj
-        itemsLayer = translate 0 23
-                   . string def
-                   . intercalate ", "
-                   . map showWithCount
-                   . toOccurList
-                   $ items
-        layers = pcLayer
-               : itemsLayer
-               : objLayers (assocs objects)
+                    $ pobj
+            objLayers = map
+                      $ \((x,y),obj) ->
+                        translate x y
+                        . char def
+                        . symbol
+                        $ obj
+            msgLayer = translate 0 22
+                     . string def
+                     $ message
+            itemsLayer = translate 0 23
+                       . string def
+                       . ("Inv.: " ++)
+                       . intercalate ", "
+                       . map showWithCount
+                       . toOccurList
+                       $ items
+        in pcLayer
+           : itemsLayer
+           : msgLayer
+           : objLayers (assocs objects)

@@ -13,9 +13,14 @@ run :: FrontierM ()
 run = get >>= display >> go
   where
     go = await >>= \case
-        (Move d)    -> move d   >> continue
-        (Chop d)    -> chop d   >> continue
-        (Build d)   -> build d  >> continue
-        (Smash d)   -> smash d  >> continue
+        (Move d)    -> move d >> continue
+        (Chop d)    -> chop d >> continue
+        (Build d)   -> build d >> continue
+        (Smash d)   -> smash d >> continue
+        (Query d)   -> do msg <- query d
+                          world <- get
+                          message msg world
+                          go
+        (Unbox d)   -> unbox d >> continue
         Quit        -> return ()
     continue = get >>= display >> go

@@ -8,6 +8,8 @@ module Frontier.Model.Dynamic.Actions
     ,chop
     ,build
     ,smash
+    ,query
+    ,unbox
     ) where
 
 import Control.Conditional (guardM)
@@ -64,5 +66,14 @@ build dir = try $ do
 smash :: MonadState World m => Direction -> m ()
 smash dir = try $ do
     guardM . gets $ Ms.member Hammer . items
-    guardM . use $ _neighbor dir . to (== Just Wall)
     _neighbor dir .= Nothing
+    
+unbox :: MonadState World m => Direction -> m ()
+unbox dir = use (_neighbor dir) >>= \case
+        (Just (Box (Just item))) -> do
+            _neighbor dir .= Just (Box Nothing)
+            _items %= Ms.insert item
+        _ -> return ()
+    
+query :: MonadState World m => Direction -> m String
+query dir = use (_neighbor dir . to (maybe "" show))
