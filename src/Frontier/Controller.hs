@@ -21,7 +21,7 @@ keyboardInput events =
             EvKey (KChar 'j') _ -> return . Dir $ St.N
             EvKey (KChar 'k') _ -> return . Dir $ St.S
             EvKey (KChar 'l') _ -> return . Dir $ St.E
-            EvKey (KChar c)   _ | c `elem` ['1'..'9']
+            EvKey (KChar c)   _ | c `elem` ['0'..'9']
                                 -> return . Repeat $ read (c:"")
             EvKey (KChar c)   _ -> return . Cmd $ c
             EvKey KEsc        _ -> return Quit
@@ -30,6 +30,9 @@ keyboardInput events =
     in producer Single . forever $ readKey >>= \case
             (Repeat n)          -> readKey >>= \case
                 (Dir d)         -> replicateM_ n $ yield (Dy.Move d)
+                (Repeat m)      -> readKey >>= \case
+                    (Dir d)     -> replicateM_ (n*10+m) $ yield (Dy.Move d)
+                    _           -> pass
                 _               -> pass
             (Dir d)             -> yield (Dy.Move d)
             (Cmd 'c')           -> readKey >>= \case
