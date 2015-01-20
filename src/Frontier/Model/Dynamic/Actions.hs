@@ -10,6 +10,7 @@ module Frontier.Model.Dynamic.Actions
     ,smash
     ,query
     ,unbox
+    ,step
     ) where
 
 import Control.Conditional (guardM)
@@ -70,10 +71,13 @@ smash dir = try $ do
     
 unbox :: MonadState World m => Direction -> m ()
 unbox dir = use (_neighbor dir) >>= \case
-        (Just (Box (Just item))) -> do
-            _neighbor dir .= Just (Box Nothing)
-            _items %= Ms.insert item
-        _ -> return ()
+    (Just (Box (Just item))) -> do
+        _neighbor dir .= Just (Box Nothing)
+        _items %= Ms.insert item
+    _ -> return ()
     
 query :: MonadState World m => Direction -> m String
 query dir = use (_neighbor dir . to (maybe "" show))
+
+step :: MonadState World m => m ()
+step = _playerCharacter . _2 . _energy -= 1

@@ -23,4 +23,4 @@ run = get >>= display >> go
                           go
         (Unbox d)   -> unbox d >> continue
         Quit        -> return ()
-    continue = get >>= display >> go
+    continue = step >> get >>= display >> go

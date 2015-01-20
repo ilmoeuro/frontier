@@ -5,13 +5,14 @@
 {-# LANGUAGE TupleSections     #-}
 module Frontier.Model.Static
     (Direction(..)
+    ,PlayerCharacter(..)
     ,Object(..)
     ,Item(..)
     ,World(..)
     ,_Wall
     ,_Tree
     ,_Box
-    ,_PlayerCharacter
+    ,_energy
     ,_objects
     ,_items
     ,_playerCharacter
@@ -33,11 +34,15 @@ _COLS = 79
 
 data Direction = N | E | S | W deriving (Read, Show)
 
+data PlayerCharacter = PlayerCharacter
+    { energy :: Int
+    }
+    deriving (Read, Show)
+
 data Object
     = Wall
     | Tree
     | Box (Maybe Item)
-    | PlayerCharacter
     deriving (Read, Show, Eq)
 
 data Item
@@ -52,9 +57,14 @@ makePrisms ''Object
 data World = World
     { objects :: Map (Int, Int) Object
     , items :: MultiSet Item
-    , playerCharacter :: ((Int, Int), Object)
+    , playerCharacter :: ((Int, Int), PlayerCharacter)
     }
     deriving (Read, Show)
+
+makeLensesFor
+    [("energy"          ,"_energy")
+    ]
+    ''PlayerCharacter
 
 makeLensesFor
     [("objects"         ,"_objects")
@@ -67,7 +77,7 @@ defaultWorld :: World
 defaultWorld = World
     { objects = initialObjects
     , items = MultiSet.empty
-    , playerCharacter = ((1,1), PlayerCharacter)
+    , playerCharacter = ((1,1), PlayerCharacter 1000)
     }
     where
         initialObjects = Map.fromList $ boxes ++ randomTrees ++ walls
