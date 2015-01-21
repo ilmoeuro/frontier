@@ -1,34 +1,42 @@
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE LambdaCase       #-}
+{-# LANGUAGE TemplateHaskell  #-}
 module Frontier.Model
-    (Input(..)
+    (Sprite
+    ,Input(..)
     ,Output(..)
     ,ModelState()
+    ,_Display
     ,mkModelState
     ,model
     ) where
 
 import Control.Applicative
 import Control.Lens
-import Control.Monad.State
-import Data.Map (Map)
-import qualified Data.Map as Map
+import Control.Monad.State.Strict
 import Frontier.Model.Dynamic
 import Frontier.Model.Static
 import Pipes
 import Prelude hiding (init)
 
-type ModelM = Pipe Input Output (State ModelState)
+type Sprite = ((Int, Int), Char)
 
 data Input
     = Init
+    -- TODO: More refined commands
     | Command Char
     | Step
+    deriving (Show)
 
 data Output
-    = Display (Map (Int,Int) Char)
+    = Display [Sprite]
+    deriving (Show)
+
+makePrisms ''Output
 
 newtype ModelState = ModelState { unModelState :: World }
+
+type ModelM = Pipe Input Output (State ModelState)
 
 mkModelState :: ModelState
 mkModelState = ModelState mkWorld
@@ -40,8 +48,7 @@ display :: ModelM ()
 display = sprites >>= yield . Display
     where
         sprites =
-                ( Map.fromList
-                . map toSprite
+                ( map toSprite
                 . objects
                 . unModelState
                 ) `liftM` get
@@ -55,5 +62,6 @@ model = go
     where
         go = await >>= \case
             Init ->         runAction init          >> display  >> go
+            Command 'q' ->  return ()
             Command c ->    runAction (command c)   >> display  >> go
             Step ->         runAction step          >> display  >> go

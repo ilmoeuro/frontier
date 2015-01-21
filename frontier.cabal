@@ -33,4 +33,5 @@ executable frontier
                    Frontier.Model.Dynamic,
                    Frontier.Model.Features.Base,
                    Frontier.Model,
-                   Frontier.Controller
+                   Frontier.Controller,
+                   Frontier.View

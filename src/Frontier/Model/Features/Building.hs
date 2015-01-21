@@ -17,18 +17,19 @@ data Component a where
     Unknown                     :: Component a
 
 seed :: Seed b -> Component b
-seed _                      = Unknown
+seed _ = Unknown
 
 feature :: forall w e. Feature Component w e
 feature = Feature {..} where
 
     init :: Env w e -> (forall b. ALens' (e b) (Component b)) -> Action w
-    init Env{..} _ =
-        foldr
+    init Env{..} _
+        = foldr
             ((.) . mkTree)
             id
-            $ zip (randoms (mkStdGen 0))
-                  (randoms (mkStdGen 1))
+        . take 100
+        $ zip (randoms (mkStdGen 0))
+              (randoms (mkStdGen 1))
       where
         mkTree (x', y') =
             create Object Opaque
