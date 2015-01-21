@@ -1,26 +1,66 @@
-{-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE GADTs           #-}
+{-# LANGUAGE NamedFieldPuns  #-}
+{-# LANGUAGE RankNTypes      #-}
+{-# LANGUAGE RecordWildCards #-}
 module Frontier.Model.Dynamic
-    (FrontierM
-    ,run
+    (init
+    ,command
+    ,step
     ) where
 
-import Control.Monad.State
-import Frontier.Model.Dynamic.Actions
-import Frontier.Model.Dynamic.Interface
-import Pipes
+import Control.Applicative
+import Control.Lens hiding (Action, act)
+import Frontier.Model.Feature hiding (command, init, step)
+import qualified Frontier.Model.Feature as Ftr
+import qualified Frontier.Model.Features.Base as Base
+import qualified Frontier.Model.Features.Building as Building
+import Frontier.Model.Static
+import Prelude hiding (init)
 
-run :: FrontierM ()
-run = get >>= display >> go
-  where
-    go = await >>= \case
-        (Move d)    -> move d >> continue
-        (Chop d)    -> chop d >> continue
-        (Build d)   -> build d >> continue
-        (Smash d)   -> smash d >> continue
-        (Query d)   -> do msg <- query d
-                          world <- get
-                          message msg world
-                          go
-        (Unbox d)   -> unbox d >> continue
-        Quit        -> return ()
-    continue = step >> get >>= display >> go
+_entities :: Witness b -> Lens' World [Entity b]
+_entities Object = _objects
+_entities Item = _items
+
+env :: Env World Entity
+env = Env {..} where
+    create :: Witness b -> Seed b -> (Entity b -> Entity b) -> Action World
+    create wit s fn w@World{lastUid}
+        = (_entities wit %~ ((fn . seed wit lastUid) s :))
+        . (_lastUid +~ 1)
+        $ w
+
+    forEach :: Witness b -> (Entity b -> Action World) -> Action World
+    forEach Object act = foldr act <*> objects
+    forEach Item   act = foldr act <*> items
+
+    modify :: Witness b -> (Entity b -> Entity b) -> Entity b -> Action World
+    modify wit fn e = _entities wit . each . filtered ((== uid e) . uid) %~ fn
+
+    destroy :: Witness b -> Entity b -> Action World
+    destroy wit e = _entities wit %~ filter ((== uid e) . uid)
+
+    _position :: Lens' (Entity Object) (Int, Int)
+    _position = _meta . __position
+
+    _symbol :: Lens' (Entity Object) Char
+    _symbol = _meta . __symbol
+
+universal
+    :: (forall a w e.
+           Feature a w e
+        -> Env w e
+        -> (forall b. ALens' (e b) (a b))
+        -> Action w)
+    -> Action World
+universal f
+    = f Base.feature env (_components._base)
+    . f Building.feature env (_components._building)
+
+init :: Action World
+init = universal Ftr.init
+
+command :: Char -> Action World
+command c = universal (`Ftr.command` c)
+
+step :: Action World
+step = universal Ftr.step
