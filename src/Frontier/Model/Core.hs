@@ -1,7 +1,7 @@
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE LambdaCase       #-}
 {-# LANGUAGE TemplateHaskell  #-}
-module Frontier.Model
+module Frontier.Model.Core
     (Sprite
     ,Input(..)
     ,Output(..)
@@ -14,8 +14,8 @@ module Frontier.Model
 import Control.Applicative
 import Control.Lens
 import Control.Monad.State.Strict
-import Frontier.Model.Dynamic
-import Frontier.Model.Static
+import Frontier.Model.Core.Dynamic
+import Frontier.Model.Core.Static
 import Pipes
 import Prelude hiding (init)
 

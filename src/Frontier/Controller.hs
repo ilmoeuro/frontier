@@ -6,7 +6,7 @@ module Frontier.Controller
 import Control.Concurrent.Chan
 import Control.Monad
 import Control.Monad.Managed
-import qualified Frontier.Model as Model (Input (..))
+import qualified Frontier.Model.Core as Model (Input (..))
 import Graphics.Vty
 import MVC hiding (Input)
 import MVC.Prelude

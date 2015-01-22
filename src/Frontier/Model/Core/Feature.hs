@@ -1,7 +1,7 @@
 {-# LANGUAGE EmptyDataDecls #-}
 {-# LANGUAGE GADTs          #-}
 {-# LANGUAGE RankNTypes     #-}
-module Frontier.Model.Feature
+module Frontier.Model.Core.Feature
     (Env(..)
     ,Feature(..)
     ,Item()

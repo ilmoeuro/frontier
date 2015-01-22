@@ -3,15 +3,15 @@
 {-# LANGUAGE PatternGuards   #-}
 {-# LANGUAGE RankNTypes      #-}
 {-# LANGUAGE RecordWildCards #-}
-module Frontier.Model.Features.Building
+module Frontier.Model.Core.Features.Building
     (Component()
     ,seed
     ,feature
     ) where
 
 import Control.Lens hiding (Action)
-import Frontier.Model.Feature hiding (PlayerCharacter)
-import qualified Frontier.Model.Feature as Ftr
+import Frontier.Model.Core.Feature hiding (PlayerCharacter)
+import qualified Frontier.Model.Core.Feature as Ftr
 import Prelude hiding (init)
 import System.Random
 

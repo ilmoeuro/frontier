@@ -2,7 +2,7 @@
 {-# LANGUAGE NamedFieldPuns  #-}
 {-# LANGUAGE RankNTypes      #-}
 {-# LANGUAGE RecordWildCards #-}
-module Frontier.Model.Dynamic
+module Frontier.Model.Core.Dynamic
     (init
     ,command
     ,step
@@ -10,11 +10,11 @@ module Frontier.Model.Dynamic
 
 import Control.Lens hiding (Action, act)
 import Data.Function
-import Frontier.Model.Feature hiding (command, init, step)
-import qualified Frontier.Model.Feature as Ftr
-import qualified Frontier.Model.Features.Base as Base
-import qualified Frontier.Model.Features.Building as Building
-import Frontier.Model.Static
+import Frontier.Model.Core.Feature hiding (command, init, step)
+import qualified Frontier.Model.Core.Feature as Ftr
+import qualified Frontier.Model.Core.Features.Base as Base
+import qualified Frontier.Model.Core.Features.Building as Building
+import Frontier.Model.Core.Static
 import Prelude hiding (init)
 
 _entities :: Witness b -> Lens' World [Entity b]

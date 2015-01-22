@@ -28,10 +28,11 @@ executable frontier
                    vty >= 5.2.6 && < 5.3
   ghc-options:     -Wall -threaded -O3
   other-modules:   
-                   Frontier.Model.Feature,
-                   Frontier.Model.Static,
-                   Frontier.Model.Dynamic,
-                   Frontier.Model.Features.Base,
-                   Frontier.Model,
+                   Frontier.Model.Core,
+                   Frontier.Model.Core.Feature,
+                   Frontier.Model.Core.Features.Base,
+                   Frontier.Model.Core.Features.Building,
+                   Frontier.Model.Core.Dynamic,
+                   Frontier.Model.Core.Static,
                    Frontier.Controller,
                    Frontier.View

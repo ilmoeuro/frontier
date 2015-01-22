@@ -3,7 +3,7 @@
 {-# LANGUAGE RankNTypes      #-}
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE TemplateHaskell #-}
-module Frontier.Model.Static
+module Frontier.Model.Core.Static
     (Id
     ,Components(..)
     ,Meta(..)
@@ -24,9 +24,9 @@ module Frontier.Model.Static
     ) where
 
 import Control.Lens hiding (Action, act)
-import Frontier.Model.Feature
-import qualified Frontier.Model.Features.Base as Base
-import qualified Frontier.Model.Features.Building as Building
+import Frontier.Model.Core.Feature
+import qualified Frontier.Model.Core.Features.Base as Base
+import qualified Frontier.Model.Core.Features.Building as Building
 
 type Id = Int
 

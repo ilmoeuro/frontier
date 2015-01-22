@@ -6,7 +6,7 @@ module Frontier.View
 import Control.Monad
 import Control.Monad.Managed
 import Data.Default
-import Frontier.Model (Sprite)
+import Frontier.Model.Core (Sprite)
 import Graphics.Vty hiding (update)
 import MVC hiding (Input)
 import MVC.Prelude
