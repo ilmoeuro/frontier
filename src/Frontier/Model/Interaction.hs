@@ -29,9 +29,13 @@ data Output
 
 makePrisms ''Output
 
-newtype ModelState = ModelState { unModelState :: Core.ModelState }
+data ModelState = ModelState
+    { coreState :: Core.ModelState
+    , count     :: Int
+    }
 makeLensesFor
-    [("unModelState"    ,"_unModelState")
+    [("coreState"   ,"_coreState")
+    ,("count"       ,"_count")
     ]
     ''ModelState
 
@@ -41,43 +45,47 @@ data Token = TokenCmd String | TokenCount Int
 
 runCore :: Core.Input -> ModelM ()
 runCore input =
-    lift (zoom _unModelState (unpack `liftM` Core.model input)) >>= yield
+    lift (zoom _coreState (unpack `liftM` Core.model input)) >>= yield
   where
     unpack (Core.Display sprites) = Display sprites
 
 mkModelState :: ModelState
-mkModelState = ModelState Core.mkModelState
+mkModelState = ModelState Core.mkModelState 1
 
-model :: ModelM ()
-model = runCore Core.Init >> go
+getToken :: ModelM Token
+getToken
+    = await >>= \(KeyChar c)    ->
+            if | nullary c      -> return . TokenCmd $ [c]
+               | unary c        -> await >>= \(KeyChar d) ->
+                                   return . TokenCmd $ [c,d]
+               | binary c       -> await >>= \(KeyChar d) ->
+                                   await >>= \(KeyChar e) ->
+                                   return . TokenCmd $ [c,d,e]
+               | isDigit c      -> return . TokenCount . read $ [c]
+               | otherwise      -> return . TokenCmd $ [c]
   where
     nullary x       = x `elem` "hjklq'*!\"#¤%&/()=?@{[]}\\+<>,;.:-_"
     unary x         = not (nullary x) && x `elem` ['a'..'z']
     binary x        = x `elem` ['A'..'Z']
-    getToken        =
-        await >>= \(KeyChar c)   ->
-            if | nullary c       -> return . TokenCmd $ [c]
-               | unary c         -> await >>= \(KeyChar d) ->
-                                    return . TokenCmd $ [c,d]
-               | binary c        -> await >>= \(KeyChar d) ->
-                                    await >>= \(KeyChar e) ->
-                                    return . TokenCmd $ [c,d,e]
-               | isDigit c       -> return . TokenCount . read $ [c]
-               | otherwise       -> return . TokenCmd $ [c]
+
+model :: ModelM ()
+model = runCore Core.Init >> go
+  where
     go = runCore Core.Step >>
          getToken >>= \case
-            (TokenCmd c)         -> unless (c == "q") $ do
-                                        runCore (Core.Command c)
+            (TokenCmd c)        -> unless (c == "q") $ do
+                                        n <- gets (max 1 . count)
+                                        replicateM_ n $
+                                            runCore (Core.Command c)
+                                        _count .= 0
                                         go
-            (TokenCount c)       -> getToken >>= \case
-                (TokenCmd c')    -> do replicateM_ c (runCore (Core.Command c'))
-                                       go
-                (TokenCount c')  -> getToken >>= \case
-                    (TokenCmd d) -> do replicateM_
-                                        ((c * 10) + c')
-                                        (runCore (Core.Command d))
-                                       go
-                    _            -> go
+            (TokenCount n)      -> do
+                                        _count *= 10
+                                        _count += n
+                                        go
 
-_unused :: ModelState -> Core.ModelState
-_unused = unModelState
+_unused1 :: ModelState -> Core.ModelState
+_unused1 = coreState
+
+_unused2 :: ModelState -> Int
+_unused2 = count
