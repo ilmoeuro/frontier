@@ -23,7 +23,8 @@ io :: Managed (View Model.Output, Controller Model.Input)
 io = getVty >>= \Vty{inputIface, update} ->
     let Input{_eventChannel} = inputIface
         controller = keyboardController _eventChannel
-        view = fmap (handles _Display) (spritesView update)
+        view =  fmap (handles _Display) (spritesView update)
+             <> fmap (handles _Message) (messageView update)
     in (,) <$> view <*> controller
 
 main :: IO ()

@@ -11,7 +11,6 @@ import Graphics.Vty
 import MVC hiding (Input)
 import MVC.Prelude
 
--- TODO: Separate
 keyboardController :: Chan Event -> Managed (Controller Model.Input)
 keyboardController events
     = producer Single

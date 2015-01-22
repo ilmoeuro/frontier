@@ -37,7 +37,7 @@ feature = Feature {..} where
             .(_symbol       .~ '@'))
 
     command :: String -> Env w e -> (forall b. ALens' (e b) (Component b)) -> Action w
-    command c Env{..} _com =
+    command c Env{..} _com | c `elem` ["h", "j", "k", "l"] =
         withAll Object $ compose . \objs ->
             [ modify Object move obj
             | obj <- objs
@@ -58,6 +58,7 @@ feature = Feature {..} where
             "k" -> _position._2 -~ 1
             "l" -> _position._1 +~ 1
             _   -> id
+    command _ _ _ = id
 
     step :: Env w e -> (forall b. ALens' (e b) (Component b)) -> Action w
     step _ _ = id

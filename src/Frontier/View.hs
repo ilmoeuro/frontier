@@ -1,6 +1,7 @@
 {-# LANGUAGE LambdaCase #-}
 module Frontier.View
     (spritesView
+    ,messageView
     ) where
 
 import Control.Monad
@@ -23,3 +24,14 @@ spritesView update
        $ sprites
   where
     toLayer ((x, y), c) = translate x y . char def $ c
+
+messageView :: (Picture -> IO ()) -> Managed (View [String])
+messageView update
+    = consumer
+    . forever
+    $ await >>= \strings ->
+       liftIO
+       . update
+       . picForImage
+       . foldr ((<->) . string def) emptyImage
+       $ strings

@@ -8,6 +8,7 @@ module Frontier.Model.Interaction
     ,Output(..)
     ,ModelState()
     ,_Display
+    ,_Message
     ,mkModelState
     ,model
     ) where
@@ -26,6 +27,7 @@ data Input
 
 data Output
     = Display [Sprite]
+    | Message [String]
 
 makePrisms ''Output
 
@@ -42,6 +44,25 @@ makeLensesFor
 type ModelM = Pipe Input Output (State ModelState)
 
 data Token = TokenCmd String | TokenCount Int
+
+welcomeMessage :: [String]
+welcomeMessage =
+    ["Welcome to Frontier!"
+    ,""
+    ,"Commands:"
+    ,"h - move left"
+    ,"j - move down"
+    ,"k - move up"
+    ,"l - move right"
+    ,"b - build (takes a direction as argument)"
+    ,""
+    ,"Symbols:"
+    ,"@ - you"
+    ,"^ - tree"
+    ,"# - wall"
+    ,""
+    ,"Press 's' to start"
+    ]
 
 runCore :: Core.Input -> ModelM ()
 runCore input =
@@ -69,7 +90,11 @@ getToken
     binary x        = x `elem` ['A'..'Z']
 
 model :: ModelM ()
-model = runCore Core.Init >> go
+model = do
+    yield (Message welcomeMessage)
+    _ <- await
+    runCore Core.Init
+    go
   where
     go = runCore Core.Step >>
          getToken >>= \case
@@ -86,6 +111,3 @@ model = runCore Core.Init >> go
 
 _unused1 :: ModelState -> Core.ModelState
 _unused1 = coreState
-
-_unused2 :: ModelState -> Int
-_unused2 = count
