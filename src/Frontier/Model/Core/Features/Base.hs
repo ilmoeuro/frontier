@@ -36,7 +36,7 @@ feature = Feature {..} where
             ((_position     .~ (1,1))
             .(_symbol       .~ '@'))
 
-    command :: Char -> Env w e -> (forall b. ALens' (e b) (Component b)) -> Action w
+    command :: String -> Env w e -> (forall b. ALens' (e b) (Component b)) -> Action w
     command c Env{..} _com =
         withAll Object $ compose . \objs ->
             [ modify Object move obj
@@ -53,10 +53,10 @@ feature = Feature {..} where
         isPC obj | PlayerCharacter <- obj ^# _com   = True
         isPC _                                      = False
         move = case c of
-            'h' -> _position._1 -~ 1
-            'j' -> _position._2 +~ 1
-            'k' -> _position._2 -~ 1
-            'l' -> _position._1 +~ 1
+            "h" -> _position._1 -~ 1
+            "j" -> _position._2 +~ 1
+            "k" -> _position._2 -~ 1
+            "l" -> _position._1 +~ 1
             _   -> id
 
     step :: Env w e -> (forall b. ALens' (e b) (Component b)) -> Action w

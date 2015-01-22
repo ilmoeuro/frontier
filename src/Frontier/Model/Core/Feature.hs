@@ -40,7 +40,7 @@ data Feature a w e = Feature
     {init               :: Env w e
                         -> (forall b. ALens' (e b) (a b))
                         -> Action w
-    ,command            :: Char
+    ,command            :: String
                         -> Env w e
                         -> (forall b. ALens' (e b) (a b))
                         -> Action w

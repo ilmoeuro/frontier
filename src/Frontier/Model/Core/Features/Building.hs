@@ -43,12 +43,12 @@ feature = Feature {..} where
                 ((_position     .~ (x' `rem` 80, y' `rem` 24))
                 .(_symbol       .~ '^'))
 
-    command :: Char -> Env w e -> (forall b. ALens' (e b) (Component b)) -> Action w
-    command c Env{..} _com | c `elem` "HJKL" = build where
-        dir | c == 'H'  = _1 -~ 1
-            | c == 'J'  = _2 +~ 1
-            | c == 'K'  = _2 -~ 1
-            | c == 'L'  = _1 +~ 1
+    command :: String -> Env w e -> (forall b. ALens' (e b) (Component b)) -> Action w
+    command c Env{..} _com | c `elem` ["bh", "bj", "bk", "bl"] = build where
+        dir | c == "bh" = _1 -~ 1
+            | c == "bj" = _2 +~ 1
+            | c == "bk" = _2 -~ 1
+            | c == "bl" = _1 +~ 1
             | otherwise = id
         build = withAll Object $ compose . \objs ->
             [create Object Opaque

@@ -62,7 +62,7 @@ universal f
 init :: Action World
 init = universal Ftr.init
 
-command :: Char -> Action World
+command :: String -> Action World
 command c = universal (`Ftr.command` c)
 
 step :: Action World
