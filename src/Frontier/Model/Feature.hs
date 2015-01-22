@@ -28,9 +28,10 @@ type Action w = w -> w
 
 data Env w e = Env
     {create             :: forall b. Witness b -> Seed b -> (e b -> e b) -> Action w
-    ,forEach            :: forall b. Witness b -> (e b -> Action w) -> Action w
+    ,withAll            :: forall b. Witness b -> ([e b] -> Action w) -> Action w
     ,modify             :: forall b. Witness b -> (e b -> e b) -> e b -> Action w
     ,destroy            :: forall b. Witness b -> e b -> Action w
+    ,is                 :: forall b. e b -> e b -> Bool
     ,_position          :: Lens' (e Object) (Int, Int)
     ,_symbol            :: Lens' (e Object) Char
     }

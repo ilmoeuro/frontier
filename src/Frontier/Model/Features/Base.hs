@@ -22,6 +22,9 @@ seed :: Seed b -> Component b
 seed Ftr.PlayerCharacter    =  PlayerCharacter
 seed _                      =  Unknown
 
+compose :: [a -> a] -> a -> a
+compose = foldr (.) id
+
 feature :: forall w e. Feature Component w e
 feature = Feature {..} where
 
@@ -34,15 +37,27 @@ feature = Feature {..} where
             .(_symbol       .~ '@'))
 
     command :: Char -> Env w e -> (forall b. ALens' (e b) (Component b)) -> Action w
-    command c Env{..} _com = case c of
-        'h' -> forEach Object (modify' (_position._1 -~ 1))
-        'j' -> forEach Object (modify' (_position._2 +~ 1))
-        'k' -> forEach Object (modify' (_position._2 -~ 1))
-        'l' -> forEach Object (modify' (_position._1 +~ 1))
-        _   -> id
+    command c Env{..} _com =
+        withAll Object $ compose . \objs ->
+            [ modify Object move obj
+            | obj <- objs
+            , isPC obj
+            , and
+                [position (move obj) /= position obj'
+                | obj' <- objs
+                , not (obj `is` obj')
+                ]
+            ]
       where
-        modify' f e | PlayerCharacter <- e ^# _com = modify Object f e
-        modify' _ _                                = id
+        position = view _position
+        isPC obj | PlayerCharacter <- obj ^# _com   = True
+        isPC _                                      = False
+        move = case c of
+            'h' -> _position._1 -~ 1
+            'j' -> _position._2 +~ 1
+            'k' -> _position._2 -~ 1
+            'l' -> _position._1 +~ 1
+            _   -> id
 
     step :: Env w e -> (forall b. ALens' (e b) (Component b)) -> Action w
     step _ _ = id

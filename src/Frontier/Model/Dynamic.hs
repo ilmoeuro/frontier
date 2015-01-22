@@ -8,8 +8,8 @@ module Frontier.Model.Dynamic
     ,step
     ) where
 
-import Control.Applicative
 import Control.Lens hiding (Action, act)
+import Data.Function
 import Frontier.Model.Feature hiding (command, init, step)
 import qualified Frontier.Model.Feature as Ftr
 import qualified Frontier.Model.Features.Base as Base
@@ -29,15 +29,18 @@ env = Env {..} where
         . (_lastUid +~ 1)
         $ w
 
-    forEach :: Witness b -> (Entity b -> Action World) -> Action World
-    forEach Object act = foldr act <*> objects
-    forEach Item   act = foldr act <*> items
+    withAll :: Witness b -> ([Entity b] -> Action World) -> Action World
+    withAll Object act w = act (objects w) w
+    withAll Item   act w = act (items w) w
 
     modify :: Witness b -> (Entity b -> Entity b) -> Entity b -> Action World
     modify wit fn e = _entities wit . each . filtered ((== uid e) . uid) %~ fn
 
     destroy :: Witness b -> Entity b -> Action World
     destroy wit e = _entities wit %~ filter ((== uid e) . uid)
+
+    is :: Entity b -> Entity b -> Bool
+    is = (==) `on` uid
 
     _position :: Lens' (Entity Object) (Int, Int)
     _position = _meta . __position
