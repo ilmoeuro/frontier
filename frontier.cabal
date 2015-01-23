@@ -37,4 +37,5 @@ executable frontier
                    Frontier.Controller,
                    Frontier.View,
                    Frontier.Model.Interaction,
-                   Frontier.Model
+                   Frontier.Model,
+                   Frontier.Model.Core.Feature.Prelude

@@ -12,6 +12,7 @@ module Frontier.Model.Core.Features.Base
 import Control.Lens hiding (Action)
 import Frontier.Model.Core.Feature hiding (PlayerCharacter)
 import qualified Frontier.Model.Core.Feature as Ftr
+import Frontier.Model.Core.Feature.Prelude
 import Prelude hiding (init)
 
 data Component a where
@@ -37,19 +38,14 @@ feature = Feature {..} where
             .(_symbol       .~ '@'))
 
     command :: String -> Env w e -> (forall b. ALens' (e b) (Component b)) -> Action w
-    command c Env{..} _com | c `elem` ["h", "j", "k", "l"] =
+    command c env@Env{..} _com | c `elem` ["h", "j", "k", "l"] =
         withAll Object $ compose . \objs ->
             [ modify Object move obj
             | obj <- objs
             , isPC obj
-            , and
-                [position (move obj) /= position obj'
-                | obj' <- objs
-                , not (obj `is` obj')
-                ]
+            , noCollision env (move obj) objs
             ]
       where
-        position = view _position
         isPC obj | PlayerCharacter <- obj ^# _com   = True
         isPC _                                      = False
         move = case c of

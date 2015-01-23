@@ -34,10 +34,10 @@ env = Env {..} where
     withAll Item   act w = act (items w) w
 
     modify :: Witness b -> (Entity b -> Entity b) -> Entity b -> Action World
-    modify wit fn e = _entities wit . each . filtered ((== uid e) . uid) %~ fn
+    modify wit fn e = _entities wit . each . filtered (`is` e) %~ fn
 
     destroy :: Witness b -> Entity b -> Action World
-    destroy wit e = _entities wit %~ filter ((== uid e) . uid)
+    destroy wit e = _entities wit %~ filter (`is` e)
 
     is :: Entity b -> Entity b -> Bool
     is = (==) `on` uid
