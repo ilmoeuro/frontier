@@ -1,8 +1,9 @@
-{-# LANGUAGE GADTs           #-}
-{-# LANGUAGE LambdaCase      #-}
-{-# LANGUAGE PatternGuards   #-}
-{-# LANGUAGE RankNTypes      #-}
-{-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE GADTs               #-}
+{-# LANGUAGE LambdaCase          #-}
+{-# LANGUAGE PatternGuards       #-}
+{-# LANGUAGE RankNTypes          #-}
+{-# LANGUAGE RecordWildCards     #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 module Frontier.Model.Core.Features.Base
     (Component()
     ,seed
@@ -26,19 +27,20 @@ seed _                      =  Unknown
 compose :: [a -> a] -> a -> a
 compose = foldr (.) id
 
-feature :: forall w e. Feature Component w e
-feature = Feature {..} where
+feature :: forall e w. Env w e
+        -> (forall b. ALens' (e b) (Component b))
+        -> Feature w
+feature env@Env{..} _com = Feature {..} where
 
-    init :: Env w e -> (forall b. ALens' (e b) (Component b)) -> Action w
-    init Env{..} _com
-        = create
+    init :: Action w
+    init = create
             Object
             Ftr.PlayerCharacter
             ((_position     .~ (1,1))
             .(_symbol       .~ '@'))
 
-    command :: String -> Env w e -> (forall b. ALens' (e b) (Component b)) -> Action w
-    command c env@Env{..} _com | c `elem` ["h", "j", "k", "l"] =
+    command :: String -> Action w
+    command c | c `elem` ["h", "j", "k", "l"] =
         withAll Object $ compose . \objs ->
             [ modify Object move obj
             | obj <- objs
@@ -54,7 +56,7 @@ feature = Feature {..} where
             "k" -> _position._2 -~ 1
             "l" -> _position._1 +~ 1
             _   -> id
-    command _ _ _ = id
+    command _ = id
 
-    step :: Env w e -> (forall b. ALens' (e b) (Component b)) -> Action w
-    step _ _ = id
+    step :: Action w
+    step = id

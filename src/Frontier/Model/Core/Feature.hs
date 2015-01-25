@@ -36,15 +36,9 @@ data Env w e = Env
     ,_symbol            :: Lens' (e Object) Char
     }
 
-data Feature a w e = Feature
-    {init               :: Env w e
-                        -> (forall b. ALens' (e b) (a b))
-                        -> Action w
+data Feature w = Feature
+    {init               :: Action w
     ,command            :: String
-                        -> Env w e
-                        -> (forall b. ALens' (e b) (a b))
                         -> Action w
-    ,step               :: Env w e
-                        -> (forall b. ALens' (e b) (a b))
-                        -> Action w
+    ,step               :: Action w
     }

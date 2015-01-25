@@ -49,15 +49,13 @@ env = Env {..} where
     _symbol = _meta . __symbol
 
 universal
-    :: (forall a w e.
-           Feature a w e
-        -> Env w e
-        -> (forall b. ALens' (e b) (a b))
+    :: (forall w.
+           Feature w
         -> Action w)
     -> Action World
 universal f
-    = f Base.feature env (_components._base)
-    . f Building.feature env (_components._building)
+    = f (Base.feature env (_components._base))
+    . f (Building.feature env (_components._building))
 
 init :: Action World
 init = universal Ftr.init

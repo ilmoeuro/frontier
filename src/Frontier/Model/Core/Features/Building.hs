@@ -1,9 +1,10 @@
-{-# LANGUAGE GADTs              #-}
-{-# LANGUAGE LambdaCase         #-}
-{-# LANGUAGE PatternGuards      #-}
-{-# LANGUAGE RankNTypes         #-}
-{-# LANGUAGE RecordWildCards    #-}
-{-# LANGUAGE StandaloneDeriving #-}
+{-# LANGUAGE GADTs               #-}
+{-# LANGUAGE LambdaCase          #-}
+{-# LANGUAGE PatternGuards       #-}
+{-# LANGUAGE RankNTypes          #-}
+{-# LANGUAGE RecordWildCards     #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE StandaloneDeriving  #-}
 module Frontier.Model.Core.Features.Building
     (Component()
     ,seed
@@ -33,26 +34,24 @@ seed :: Seed b -> Component b
 seed Ftr.PlayerCharacter    =  PlayerCharacter
 seed _                      =  Unknown
 
-feature :: Feature Component w e
-feature = Feature {..} where
+feature :: forall e w. Env w e
+        -> (forall b. ALens' (e b) (Component b))
+        -> Feature w
+feature env@Env{..} _com = Feature {..} where
 
-    init :: Env w e -> (forall b. ALens' (e b) (Component b)) -> Action w
-    init Env{..} _
-        = foldr
-            ((.) . mkTree)
-            id
-        . take 100
-        $ zip (randoms (mkStdGen 0))
-              (randoms (mkStdGen 1))
+    init :: Action w
+    init = foldr ((.) . mkTree) id
+         . take 100
+         $ zip (randoms (mkStdGen 0))
+               (randoms (mkStdGen 1))
       where
         mkTree (x', y') =
             create Object Opaque
                 ((_position     .~ (x' `rem` 80, y' `rem` 24))
                 .(_symbol       .~ '^'))
 
-    command :: String -> Env w e -> (forall b. ALens' (e b) (Component b)) -> Action w
-    command c env@Env{..} _com
-      | c `elem` ["bh", "bj", "bk", "bl"] = build where
+    command :: String -> Action w
+    command c | c `elem` ["bh", "bj", "bk", "bl"] = build where
         move = case c of
             "bh" -> _position._1 -~ 1
             "bj" -> _position._2 +~ 1
@@ -79,7 +78,7 @@ feature = Feature {..} where
                 _ -> id
         isPC obj | PlayerCharacter <- obj ^# _com   = True
         isPC _                                      = False
-    command _ _ _ = id
+    command _ = id
 
-    step :: Env w e -> (forall b. ALens' (e b) (Component b)) -> Action w
-    step _ _ = id
+    step :: Action w
+    step = id
