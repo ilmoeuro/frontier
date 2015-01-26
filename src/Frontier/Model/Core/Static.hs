@@ -15,9 +15,12 @@ module Frontier.Model.Core.Static
     ,_meta
     ,__position
     ,__symbol
+    ,_entityTag
     ,_objects
     ,_items
     ,_lastUid
+    ,_initParam
+    ,_messages
     ,mkMeta
     ,seed
     ,mkWorld
@@ -42,6 +45,7 @@ data Meta b where
 data Entity b = Entity
     {components         :: Components b
     ,meta               :: Meta b
+    ,entityTag          :: Tag b
     ,uid                :: Id
     }
 
@@ -49,6 +53,8 @@ data World = World
     {objects            :: [Entity Object]
     ,items              :: [Entity Item]
     ,lastUid            :: Id
+    ,initParam          :: Int
+    ,messages           :: [String]
     }
 
 makeLensesFor
@@ -60,6 +66,7 @@ makeLensesFor
 makeLensesFor
     [("components"          ,"_components")
     ,("meta"                ,"_meta")
+    ,("entityTag"           ,"_entityTag")
     ]
     ''Entity
 
@@ -67,6 +74,8 @@ makeLensesFor
     [("objects"             ,"_objects")
     ,("items"               ,"_items")
     ,("lastUid"             ,"_lastUid")
+    ,("initParam"           ,"_initParam")
+    ,("messages"            ,"_messages")
     ]
     ''World
 
@@ -92,6 +101,7 @@ seed wit uid s =
             ,building = Building.fromTag s
             }
         ,meta = mkMeta wit
+        ,entityTag = s
         ,uid = uid
         }
 
@@ -100,4 +110,6 @@ mkWorld = World
     {objects    = []
     ,items      = []
     ,lastUid    = 0
+    ,initParam  = 0
+    ,messages   = []
     }

@@ -15,6 +15,7 @@ executable frontier
                    lens >= 4.7 && < 4.8,
                    transformers >= 0.3.0.0 && < 0.4,
                    random >= 1.1 && < 1.2,
+                   split >= 0.2.2 && < 0.3,
                    mtl >= 2.1 && < 2.2,
                    pipes >= 4.1 && < 4.2,
                    mvc >= 1.0 && < 1.1,

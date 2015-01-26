@@ -77,7 +77,8 @@ feature env@Env{..} _com = Feature {..} where
     _com' = cloneLens _com
 
     init :: Action w
-    init = create
+    init = withInitParam $ \initParam ->
+           create
             Object
             (WorldItemTag HammerTag)
             ((_position     .~ (5,5))
@@ -89,12 +90,12 @@ feature env@Env{..} _com = Feature {..} where
             .(_symbol       .~ '/'))
          . (foldr ((.) . mkTree) id
            . take 100
-           $ zip (randoms (mkStdGen 0))
-                 (randoms (mkStdGen 1)))
+           $ zip (randoms . mkStdGen $ initParam)
+                 (randoms . mkStdGen . (+1) $ initParam))
       where
         mkTree (x', y') =
             create Object OpaqueTag
-                ((_position     .~ (x' `rem` 80, y' `rem` 24))
+                ((_position     .~ (x' `rem` 80, y' `rem` 23))
                 .(_symbol       .~ '^')
                 .(_com          #~ Tree))
 

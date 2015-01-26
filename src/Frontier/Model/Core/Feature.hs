@@ -24,6 +24,7 @@ data Tag b where
     PlayerCharacterTag  :: Tag Object
     HammerTag           :: Tag Item
     AxeTag              :: Tag Item
+    LumberTag           :: Tag Item
     WorldItemTag        :: Tag Item -> Tag Object
     OpaqueTag           :: Tag b
 
@@ -35,8 +36,11 @@ data Env w e = Env
     ,modify             :: forall b. Witness b -> (e b -> e b) -> e b -> Action w
     ,destroy            :: forall b. Witness b -> e b -> Action w
     ,is                 :: forall b. e b -> e b -> Bool
+    ,withInitParam      :: (Int -> Action w) -> Action w
+    ,message            :: ([String] -> [String]) -> Action w
     ,_position          :: Lens' (e Object) (Int, Int)
     ,_symbol            :: Lens' (e Object) Char
+    ,_tag               :: forall b. Lens' (e b) (Tag b)
     }
 
 data Feature w = Feature

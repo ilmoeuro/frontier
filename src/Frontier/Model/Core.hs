@@ -10,6 +10,7 @@ module Frontier.Model.Core
 import Control.Applicative
 import Control.Lens
 import Control.Monad.State.Strict
+import Data.List hiding (init)
 import Frontier.Model.Core.Dynamic
 import Frontier.Model.Core.Static
 import Prelude hiding (init)
@@ -29,7 +30,7 @@ data Input
     deriving (Show)
 
 data Output
-    = Display [Sprite]
+    = Display String [Sprite]
     deriving (Show)
 
 newtype ModelState = ModelState { unModelState :: World }
@@ -43,13 +44,16 @@ runAction :: (World -> World) -> ModelM ()
 runAction f = modify (ModelState . f . unModelState)
 
 display :: ModelM Output
-display = Display `liftM` sprites
+display = Display <$> msg <*> sprites
     where
-        sprites =
-                ( map toSprite
+        msg    =  intercalate "; "
+                . messages
+                . unModelState
+                <$> get
+        sprites = map toSprite
                 . objects
                 . unModelState
-                ) `liftM` get
+                <$> get
         toSprite =
                 (,)
                 <$> view (_meta . __position)

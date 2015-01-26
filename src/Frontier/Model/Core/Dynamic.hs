@@ -42,11 +42,20 @@ env = Env {..} where
     is :: Entity b -> Entity b -> Bool
     is = (==) `on` uid
 
+    withInitParam :: (Int -> Action World) -> Action World
+    withInitParam act w = act (initParam w) w
+
+    message :: ([String] -> [String]) -> Action World
+    message = (_messages %~)
+
     _position :: Lens' (Entity Object) (Int, Int)
     _position = _meta . __position
 
     _symbol :: Lens' (Entity Object) Char
     _symbol = _meta . __symbol
+
+    _tag :: Lens' (Entity b) (Tag b)
+    _tag = _entityTag
 
 universal
     :: (forall w.

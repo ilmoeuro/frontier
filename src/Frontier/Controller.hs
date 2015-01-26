@@ -22,4 +22,5 @@ keyboardController events
         (EvKey KUp       _)     -> yield . Model.KeyChar $ 'k'
         (EvKey KRight    _)     -> yield . Model.KeyChar $ 'l'
         (EvKey KEsc      _)     -> yield . Model.KeyChar $ 'q'
+        (EvKey _         _)     -> yield . Model.KeyChar $ '\0'
         _                       -> return ()

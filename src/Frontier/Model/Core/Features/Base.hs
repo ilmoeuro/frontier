@@ -11,6 +11,7 @@ module Frontier.Model.Core.Features.Base
     ) where
 
 import Control.Lens
+import Data.List hiding (init)
 import Frontier.Model.Core.Feature
 import Frontier.Model.Core.Feature.Prelude
 import Frontier.Prelude
@@ -43,9 +44,17 @@ _Unknown = prism'
         _               -> Nothing)
 
 fromTag :: Tag b -> Component b
-fromTag PlayerCharacterTag     =  PlayerCharacter
-fromTag (WorldItemTag x)       =  WorldItem x
-fromTag _                      =  Unknown
+fromTag PlayerCharacterTag      =  PlayerCharacter
+fromTag (WorldItemTag x)        =  WorldItem x
+fromTag _                       =  Unknown
+
+name :: Tag b -> String
+name PlayerCharacterTag         = "Player character"
+name HammerTag                  = "Hammer"
+name AxeTag                     = "Axe"
+name LumberTag                  = "Lumber"
+name (WorldItemTag x)           = "Item: " ++ name x
+name OpaqueTag                  = "???"
 
 feature :: forall e w. Env w e
         -> (forall b. ALens' (e b) (Component b))
@@ -72,11 +81,22 @@ feature env@Env{..} _com = Feature {..} where
         move = case c of
             (x:_)   -> moveToDir env x
             _       -> id
+    -- Show inventory
+    command c | c == "!" =
+        withAll Item $ \items ->
+            message
+                . (++)
+                . (:[])
+                . intercalate "\n"
+                $   [ show num ++ " - " ++ name (item ^. _tag)
+                    | (num, item) :: (Int, e Item) <- zip [1..] items
+                    ]
     -- Object pickup
     command c | c `elem` ["ph", "pj", "pk", "pl"] =
         withAll Object $ \objs -> compose
             [ destroy Object obj
             . create Item (getItemTag obj) id
+            . message (++ ["Picked up " ++ (name . getItemTag) obj])
             | obj <- objs
             , pc <- objs
             , (obj ^# _com) `matches` _WorldItem
@@ -92,4 +112,4 @@ feature env@Env{..} _com = Feature {..} where
     command _ = id
 
     step :: Action w
-    step = id
+    step = message (const [])

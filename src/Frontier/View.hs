@@ -12,18 +12,19 @@ import Graphics.Vty hiding (update)
 import MVC hiding (Input)
 import MVC.Prelude
 
-spritesView :: (Picture -> IO ()) -> Managed (View [Sprite])
+spritesView :: (Picture -> IO ()) -> Managed (View (String, [Sprite]))
 spritesView update
     = consumer
     . forever
-    $ await >>= \sprites ->
+    $ await >>= \(msg, sprites) ->
        liftIO
        . update
        . picForLayers
-       . map toLayer
-       $ sprites
+       $ map toLayer sprites
+         ++ [msgLayer msg]
   where
     toLayer ((x, y), c) = translate x y . char def $ c
+    msgLayer = translate 0 23 . string def
 
 messageView :: (Picture -> IO ()) -> Managed (View [String])
 messageView update

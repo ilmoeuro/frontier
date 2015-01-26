@@ -16,6 +16,8 @@ module Frontier.Model.Interaction
 import Control.Lens
 import Control.Monad.State.Strict
 import Data.Char
+import Data.List
+import Data.List.Split
 import qualified Frontier.Model.Core as Core
 import Pipes
 import Prelude hiding (init)
@@ -26,7 +28,7 @@ data Input
     = KeyChar Char
 
 data Output
-    = Display [Sprite]
+    = Display String [Sprite]
     | Message [String]
 
 makePrisms ''Output
@@ -61,17 +63,22 @@ welcomeMessage =
     ,"^ - tree"
     ,"# - wall"
     ,""
-    ,"Press 's' to start"
+    ,"Press any key to start"
     ]
 
 runCore :: Core.Input -> ModelM ()
 runCore input =
-    lift (zoom _coreState (unpack `liftM` Core.model input)) >>= yield
+    lift (zoom _coreState (Core.model input)) >>= showResult
   where
-    unpack (Core.Display sprites) = Display sprites
+    showResult (Core.Display msg sprites)
+        | '\n' `elem` msg = do
+            yield . Message $ splitOn "\n" msg
+            _ <- await
+            yield (Display "" sprites)
+        | otherwise       = yield (Display msg sprites)
 
 mkModelState :: ModelState
-mkModelState = ModelState Core.mkModelState 1
+mkModelState = ModelState Core.mkModelState 0
 
 getToken :: ModelM Token
 getToken
@@ -83,7 +90,7 @@ getToken
                                    await >>= \(KeyChar e) ->
                                    return . TokenCmd $ [c,d,e]
                | isDigit c      -> return . TokenCount . read $ [c]
-               | otherwise      -> return . TokenCmd $ [c]
+               | otherwise      -> return . TokenCmd $ ""
   where
     nullary x       = x `elem` "hjklq'*!\"#¤%&/()=?@{[]}\\+<>,;.:-_"
     unary x         = not (nullary x) && x `elem` ['a'..'z']
@@ -96,11 +103,11 @@ model = do
     runCore Core.Init
     go
   where
-    go = runCore Core.Step >>
-         getToken >>= \case
+    go = getToken >>= \case
             (TokenCmd c)        -> unless (c == "q") $ do
                                         n <- gets (max 1 . count)
-                                        replicateM_ n $
+                                        replicateM_ n $ do
+                                            runCore Core.Step
                                             runCore (Core.Command c)
                                         _count .= 0
                                         go
