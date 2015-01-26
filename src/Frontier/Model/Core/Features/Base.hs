@@ -6,26 +6,46 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 module Frontier.Model.Core.Features.Base
     (Component()
-    ,seed
+    ,fromTag
     ,feature
     ) where
 
-import Control.Lens hiding (Action)
-import Frontier.Model.Core.Feature hiding (PlayerCharacter)
-import qualified Frontier.Model.Core.Feature as Ftr
+import Control.Lens
+import Frontier.Model.Core.Feature
 import Frontier.Model.Core.Feature.Prelude
+import Frontier.Prelude
 import Prelude hiding (init)
 
 data Component a where
     PlayerCharacter             :: Component Object
+    WorldItem                   :: Tag Item -> Component Object
     Unknown                     :: Component a
 
-seed :: Seed b -> Component b
-seed Ftr.PlayerCharacter    =  PlayerCharacter
-seed _                      =  Unknown
+_PlayerCharacter :: Prism' (Component Object) ()
+_PlayerCharacter = prism'
+    (const PlayerCharacter)
+    (\case
+        PlayerCharacter -> Just ()
+        _               -> Nothing)
 
-compose :: [a -> a] -> a -> a
-compose = foldr (.) id
+_WorldItem :: Prism' (Component Object) (Tag Item)
+_WorldItem = prism'
+    WorldItem
+    (\case
+        WorldItem x     -> Just x
+        _               -> Nothing)
+
+_Unknown :: Prism' (Component Object) ()
+_Unknown = prism'
+    (const Unknown)
+    (\case
+        Unknown         -> Just ()
+        _               -> Nothing)
+
+fromTag :: Tag b -> Component b
+fromTag PlayerCharacterTag     =  PlayerCharacter
+fromTag (WorldItemTag x)       =  WorldItem x
+fromTag _                      =  Unknown
 
 feature :: forall e w. Env w e
         -> (forall b. ALens' (e b) (Component b))
@@ -35,27 +55,40 @@ feature env@Env{..} _com = Feature {..} where
     init :: Action w
     init = create
             Object
-            Ftr.PlayerCharacter
+            PlayerCharacterTag
             ((_position     .~ (1,1))
             .(_symbol       .~ '@'))
 
     command :: String -> Action w
+    -- Moving
     command c | c `elem` ["h", "j", "k", "l"] =
-        withAll Object $ compose . \objs ->
-            [ modify Object move obj
-            | obj <- objs
-            , isPC obj
-            , noCollision env (move obj) objs
+        withAll Object $ \objs -> compose
+            [ modify Object move pc
+            | pc <- objs
+            , (pc ^# _com) `matches` _PlayerCharacter
+            , noCollision env (move pc) objs
             ]
       where
-        isPC obj | PlayerCharacter <- obj ^# _com   = True
-        isPC _                                      = False
         move = case c of
-            "h" -> _position._1 -~ 1
-            "j" -> _position._2 +~ 1
-            "k" -> _position._2 -~ 1
-            "l" -> _position._1 +~ 1
-            _   -> id
+            (x:_)   -> moveToDir env x
+            _       -> id
+    -- Object pickup
+    command c | c `elem` ["ph", "pj", "pk", "pl"] =
+        withAll Object $ \objs -> compose
+            [ destroy Object obj
+            . create Item (getItemTag obj) id
+            | obj <- objs
+            , pc <- objs
+            , (obj ^# _com) `matches` _WorldItem
+            , (pc ^# _com) `matches` _PlayerCharacter
+            , move pc^._position == obj^._position
+            ]
+      where
+        getItemTag obj | WorldItem s <- obj ^# _com = s
+        getItemTag _ = error "Base.hs: Trying to get tag of non-WorldItem"
+        move = case c of
+            (_:x:_) -> moveToDir env x
+            _       -> id
     command _ = id
 
     step :: Action w

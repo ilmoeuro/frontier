@@ -7,11 +7,11 @@ module Frontier.Model.Core.Feature
     ,Item()
     ,Object()
     ,Witness(..)
-    ,Seed(..)
+    ,Tag(..)
     ,Action
     ) where
 
-import Control.Lens hiding (Action)
+import Control.Lens
 
 data Item
 data Object
@@ -20,14 +20,17 @@ data Witness a where
     Item                :: Witness Item
     Object              :: Witness Object
 
-data Seed b where
-    PlayerCharacter     :: Seed Object
-    Opaque              :: Seed b
+data Tag b where
+    PlayerCharacterTag  :: Tag Object
+    HammerTag           :: Tag Item
+    AxeTag              :: Tag Item
+    WorldItemTag        :: Tag Item -> Tag Object
+    OpaqueTag           :: Tag b
 
 type Action w = w -> w
 
 data Env w e = Env
-    {create             :: forall b. Witness b -> Seed b -> (e b -> e b) -> Action w
+    {create             :: forall b. Witness b -> Tag b -> (e b -> e b) -> Action w
     ,withAll            :: forall b. Witness b -> ([e b] -> Action w) -> Action w
     ,modify             :: forall b. Witness b -> (e b -> e b) -> e b -> Action w
     ,destroy            :: forall b. Witness b -> e b -> Action w

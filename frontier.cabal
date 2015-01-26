@@ -12,7 +12,7 @@ executable frontier
                    containers >= 0.5 && < 0.6,
                    text >= 1.1 && < 1.2,
                    free >= 4.9 && < 5.0,
-                   lens >= 4.6 && < 4.7,
+                   lens >= 4.7 && < 4.8,
                    transformers >= 0.3.0.0 && < 0.4,
                    random >= 1.1 && < 1.2,
                    mtl >= 2.1 && < 2.2,
@@ -24,7 +24,6 @@ executable frontier
                    safe >= 0.3 && < 0.4,
                    cond >= 0.4 && < 0.5,
                    data-default >= 0.5.3 && < 0.6,
-                   value-supply >= 0.6 && < 0.7,
                    vty >= 5.2.6 && < 5.3
   ghc-options:     -Wall -threaded -O3
   other-modules:   
@@ -38,4 +37,5 @@ executable frontier
                    Frontier.View,
                    Frontier.Model.Interaction,
                    Frontier.Model,
-                   Frontier.Model.Core.Feature.Prelude
+                   Frontier.Model.Core.Feature.Prelude,
+                   Frontier.Prelude

@@ -8,7 +8,7 @@ module Frontier.Model.Core.Dynamic
     ,step
     ) where
 
-import Control.Lens hiding (Action, act)
+import Control.Lens
 import Data.Function
 import Frontier.Model.Core.Feature hiding (command, init, step)
 import qualified Frontier.Model.Core.Feature as Ftr
@@ -23,7 +23,7 @@ _entities Item = _items
 
 env :: Env World Entity
 env = Env {..} where
-    create :: Witness b -> Seed b -> (Entity b -> Entity b) -> Action World
+    create :: Witness b -> Tag b -> (Entity b -> Entity b) -> Action World
     create wit s fn w@World{lastUid}
         = (_entities wit %~ ((fn . seed wit lastUid) s :))
         . (_lastUid +~ 1)
@@ -37,7 +37,7 @@ env = Env {..} where
     modify wit fn e = _entities wit . each . filtered (`is` e) %~ fn
 
     destroy :: Witness b -> Entity b -> Action World
-    destroy wit e = _entities wit %~ filter (`is` e)
+    destroy wit e = _entities wit %~ filter (not . (`is` e))
 
     is :: Entity b -> Entity b -> Bool
     is = (==) `on` uid

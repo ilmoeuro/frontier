@@ -23,7 +23,7 @@ module Frontier.Model.Core.Static
     ,mkWorld
     ) where
 
-import Control.Lens hiding (Action, act)
+import Control.Lens
 import Frontier.Model.Core.Feature
 import qualified Frontier.Model.Core.Features.Base as Base
 import qualified Frontier.Model.Core.Features.Building as Building
@@ -84,12 +84,12 @@ mkMeta :: Witness b -> Meta b
 mkMeta Object   = ObjectMeta (0,0) '?'
 mkMeta Item     = ItemMeta
 
-seed :: Witness b -> Id -> Seed b -> Entity b
+seed :: Witness b -> Id -> Tag b -> Entity b
 seed wit uid s =
     Entity
         {components = Components
-            {base = Base.seed s
-            ,building = Building.seed s
+            {base = Base.fromTag s
+            ,building = Building.fromTag s
             }
         ,meta = mkMeta wit
         ,uid = uid

@@ -1,25 +1,25 @@
 {-# LANGUAGE GADTs               #-}
 {-# LANGUAGE LambdaCase          #-}
-{-# LANGUAGE PatternGuards       #-}
 {-# LANGUAGE RankNTypes          #-}
 {-# LANGUAGE RecordWildCards     #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE StandaloneDeriving  #-}
 module Frontier.Model.Core.Features.Building
     (Component()
-    ,seed
+    ,fromTag
     ,feature
     ) where
 
-import Control.Lens hiding (Action, contains)
-import Frontier.Model.Core.Feature hiding (PlayerCharacter)
-import qualified Frontier.Model.Core.Feature as Ftr
+import Control.Lens hiding (contains)
+import Frontier.Model.Core.Feature
 import Frontier.Model.Core.Feature.Prelude
+import Frontier.Prelude
 import Prelude hiding (init)
 import System.Random
 
 data Component a where
     PlayerCharacter             :: Component Object
+    Tree                        :: Component Object
     Hammer                      :: Component Item
     Axe                         :: Component Item
     Lumber                      :: Component Item
@@ -27,57 +27,115 @@ data Component a where
 
 deriving instance Eq (Component a)
 
-compose :: [a -> a] -> a -> a
-compose = foldr (.) id
+_PlayerCharacter :: Prism' (Component Object) ()
+_PlayerCharacter = prism'
+    (const PlayerCharacter)
+    (\case
+        PlayerCharacter         -> Just ()
+        _                       -> Nothing)
 
-seed :: Seed b -> Component b
-seed Ftr.PlayerCharacter    =  PlayerCharacter
-seed _                      =  Unknown
+_Tree :: Prism' (Component Object) ()
+_Tree = prism'
+    (const Tree)
+    (\case
+        Tree                    -> Just ()
+        _                       -> Nothing)
+
+_Hammer :: Prism' (Component Item) ()
+_Hammer = prism'
+    (const Hammer)
+    (\case
+        Hammer                  -> Just ()
+        _                       -> Nothing)
+
+_Axe :: Prism' (Component Item) ()
+_Axe = prism'
+    (const Axe)
+    (\case
+        Axe                     -> Just ()
+        _                       -> Nothing)
+
+_Unknown :: Prism' (Component Object) ()
+_Unknown = prism'
+    (const Unknown)
+    (\case
+        Unknown                 -> Just ()
+        _                       -> Nothing)
+
+fromTag :: Tag b -> Component b
+fromTag PlayerCharacterTag     =  PlayerCharacter
+fromTag HammerTag              =  Hammer
+fromTag AxeTag                 =  Axe
+fromTag _                      =  Unknown
 
 feature :: forall e w. Env w e
         -> (forall b. ALens' (e b) (Component b))
         -> Feature w
 feature env@Env{..} _com = Feature {..} where
 
+    _com' :: Lens' (e b) (Component b)
+    _com' = cloneLens _com
+
     init :: Action w
-    init = foldr ((.) . mkTree) id
-         . take 100
-         $ zip (randoms (mkStdGen 0))
-               (randoms (mkStdGen 1))
+    init = create
+            Object
+            (WorldItemTag HammerTag)
+            ((_position     .~ (5,5))
+            .(_symbol       .~ '/'))
+         . create
+            Object
+            (WorldItemTag AxeTag)
+            ((_position     .~ (9,7))
+            .(_symbol       .~ '/'))
+         . (foldr ((.) . mkTree) id
+           . take 100
+           $ zip (randoms (mkStdGen 0))
+                 (randoms (mkStdGen 1)))
       where
         mkTree (x', y') =
-            create Object Opaque
+            create Object OpaqueTag
                 ((_position     .~ (x' `rem` 80, y' `rem` 24))
-                .(_symbol       .~ '^'))
+                .(_symbol       .~ '^')
+                .(_com          #~ Tree))
 
     command :: String -> Action w
+    -- Building
     command c | c `elem` ["bh", "bj", "bk", "bl"] = build where
+        filterByComponent p = filter (\e -> p (e ^# _com))
         move = case c of
-            "bh" -> _position._1 -~ 1
-            "bj" -> _position._2 +~ 1
-            "bk" -> _position._2 -~ 1
-            "bl" -> _position._1 +~ 1
-            _    -> id
-        createWall = withAll Object $ compose . \objs ->
-            [create Object Opaque
-             ( move
-             . (_position   .~ (obj ^. _position))
-             . (_symbol     .~ '#'))
+            ('b':x:_)   -> moveToDir env x
+            _           -> id
+        createWall = withAll Object $ \objs -> compose
+            [create Object OpaqueTag
+                ( move
+                . (_position   .~ (obj ^. _position))
+                . (_symbol     .~ '#'))
             | obj <- objs
-            , isPC obj
+            , (obj ^# _com) `matches` _PlayerCharacter
             , noCollision env (move obj) objs
             ]
-        lumbers = filter ((== Lumber) . (^# _com))
-        contains es e = elem e . map (^# _com) $ es
         build = withAll Item $ \items ->
-            when (items `contains` Hammer)
-            $ case lumbers items of
+            when' (not . null . filterByComponent (== Hammer) $ items)
+            $ case filterByComponent (== Lumber) items of
                 (lumber:_)  ->
                     destroy Item lumber
                     . createWall
                 _ -> id
-        isPC obj | PlayerCharacter <- obj ^# _com   = True
-        isPC _                                      = False
+    -- Chopping
+    command c | c `elem` ["ch", "cj", "ck", "cl"] =
+        withAll Object $ \objs -> compose
+            [ destroy Object obj
+            . create Item OpaqueTag (_com #~ Lumber)
+            | obj <- objs
+            , pc <- objs
+            , (obj ^# _com) `matches` _Tree
+            , (pc ^# _com) `matches` _PlayerCharacter
+            , move pc^._position == obj^._position
+            ]
+      where
+        move = case c of
+            ('c':x:_)   -> moveToDir env x
+            _           -> id
     command _ = id
 
     step :: Action w

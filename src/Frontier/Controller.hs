@@ -17,4 +17,9 @@ keyboardController events
     $ forever
     $ liftIO (readChan events) >>= \case
         (EvKey (KChar c) _)     -> yield . Model.KeyChar $ c
+        (EvKey KLeft     _)     -> yield . Model.KeyChar $ 'h'
+        (EvKey KDown     _)     -> yield . Model.KeyChar $ 'j'
+        (EvKey KUp       _)     -> yield . Model.KeyChar $ 'k'
+        (EvKey KRight    _)     -> yield . Model.KeyChar $ 'l'
+        (EvKey KEsc      _)     -> yield . Model.KeyChar $ 'q'
         _                       -> return ()
