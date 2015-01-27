@@ -45,37 +45,30 @@ instance Arbitrary WorldWithPlayerCharacter where
     arbitrary
         = fmap
           (\(itemTags, objectTags, positions, playerPos) ->
-              WorldWithPlayerCharacter
-              . foldr ($) mkWorld
-              . concat
-              $
-              [   [create Item tag id
-                  | tag <- itemTags
-                  ]
-              ,   [create Object tag (_position .~ pos)
-                  | (tag, pos) <- zip objectTags
-                                . nub
-                                . filter (/= playerPos)
-                                . map (\(x, y) -> (x `rem` 80, y `rem` 24))
-                                $ positions
-                  , tag /= PlayerCharacterTag
-                  ]
-              ,   [create Object
-                       PlayerCharacterTag
-                       (_position .~ playerPos)
-                  ]
-              ])
+            WorldWithPlayerCharacter
+            . foldr (.) id
+                ([create Item tag id
+                 | tag <- itemTags
+                 ] ++
+                 [create Object tag (_position .~ pos)
+                 | (tag, pos) <- zip objectTags
+                        (nub
+                        . filter (/= playerPos)
+                        $ positions)
+                 , tag /= PlayerCharacterTag
+                 ] ++
+                 [create Object
+                         PlayerCharacterTag
+                         (_position .~ playerPos)])
+            $ mkWorld)
           arbitrary
 
 instance Arbitrary MovementCommands where
     arbitrary = MovementCommands <$> (listOf . elements $ ["h","j","k","l"])
 
 featuresBaseTest = testGroup "Frontier.Model.Core.Features.Base"
-    [testCase "Player character present after init"
-        $ ((Ftr.PlayerCharacterTag `elem`)
-            . map entityTag
-            . objects
-            $ init mkWorld)
+    [testCase "Player character present after init" $
+        (Ftr.PlayerCharacterTag `elem` (map entityTag . objects $ init mkWorld))
         @? "No object with PlayerCharacterTag"
 
     ,QC.testProperty "Messages cleared on step"
@@ -86,5 +79,5 @@ featuresBaseTest = testGroup "Frontier.Model.Core.Features.Base"
         $ \(WorldWithPlayerCharacter world) (MovementCommands cmds) ->
         let world' = foldr ((.) . command) id cmds world
             positions = map (view _position) . objects $ world'
-        in length (nub positions) === length positions
+        in length (nub positions) == length positions
     ]

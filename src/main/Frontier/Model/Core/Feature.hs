@@ -9,7 +9,6 @@ module Frontier.Model.Core.Feature
     ,Object()
     ,Witness(..)
     ,Tag(..)
-    ,Size(..)
     ,Action
     ) where
 
@@ -30,11 +29,6 @@ data Tag b where
     WorldItemTag        :: Tag Item -> Tag Object
     OpaqueTag           :: Tag b
 
-data Size
-    = Small
-    | Large
-    deriving (Show, Eq)
-
 deriving instance Eq (Tag b)
 deriving instance Show (Tag b)
 
@@ -51,7 +45,6 @@ data Env w e = Env
     ,_position          :: Lens' (e Object) (Int, Int)
     ,_symbol            :: Lens' (e Object) Char
     ,_tag               :: forall b. Lens' (e b) (Tag b)
-    ,_size              :: Lens' (e Object) Size
     }
 
 data Feature w = Feature

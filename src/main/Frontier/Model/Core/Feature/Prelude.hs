@@ -22,7 +22,6 @@ noCollision Env{..} obj objs =
             [position obj /= position obj'
             | obj' <- objs
             , not (obj `is` obj')
-            , obj' ^. _size /= Small
             ]
     where
         position = view _position
