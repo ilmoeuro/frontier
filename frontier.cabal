@@ -28,15 +28,42 @@ executable frontier
                    vty >= 5.2.6 && < 5.3
   ghc-options:     -Wall -threaded -O3
   other-modules:   
+                   Frontier.Prelude,
                    Frontier.Model.Core,
                    Frontier.Model.Core.Feature,
+                   Frontier.Model.Core.Feature.Prelude,
                    Frontier.Model.Core.Features.Base,
                    Frontier.Model.Core.Features.Building,
                    Frontier.Model.Core.Dynamic,
                    Frontier.Model.Core.Static,
-                   Frontier.Controller,
-                   Frontier.View,
                    Frontier.Model.Interaction,
                    Frontier.Model,
-                   Frontier.Model.Core.Feature.Prelude,
-                   Frontier.Prelude
+                   Frontier.Controller,
+                   Frontier.View
+
+test-suite Tests
+  type:            exitcode-stdio-1.0
+  hs-source-dirs:  
+                   src/main,
+                   src/test
+  main-is:         Tests.hs
+  ghc-options:     -Wall -rtsopts
+  build-depends:   base >= 4,
+                   tasty > 0.10,
+                   tasty-hunit,
+                   HUnit,
+                   tasty-quickcheck,
+                   QuickCheck,
+                   lens >= 4.7 && < 4.8
+  other-modules:   
+                   Frontier.Model.Core.Feature,
+                   Frontier.Model.Core.Features.Base,
+                   Frontier.Model.Core.Features.BaseTest,
+                   Frontier.Model.Core.Features.Building,
+                   Frontier.Model.Core.Testing.Static,
+                   Frontier.Model.Core.Testing.Dynamic,
+                   Frontier.Model.Core.Dynamic,
+                   Frontier.Model.Core.DynamicTest,
+                   Frontier.Model.Interaction,
+                   Frontier.Model.InteractionTest
+

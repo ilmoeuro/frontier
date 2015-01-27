@@ -1,6 +1,7 @@
-{-# LANGUAGE EmptyDataDecls #-}
-{-# LANGUAGE GADTs          #-}
-{-# LANGUAGE RankNTypes     #-}
+{-# LANGUAGE EmptyDataDecls     #-}
+{-# LANGUAGE GADTs              #-}
+{-# LANGUAGE RankNTypes         #-}
+{-# LANGUAGE StandaloneDeriving #-}
 module Frontier.Model.Core.Feature
     (Env(..)
     ,Feature(..)
@@ -27,6 +28,8 @@ data Tag b where
     LumberTag           :: Tag Item
     WorldItemTag        :: Tag Item -> Tag Object
     OpaqueTag           :: Tag b
+
+deriving instance Eq (Tag b)
 
 type Action w = w -> w
 
