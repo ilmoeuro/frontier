@@ -15,6 +15,7 @@ module Frontier.Model.Core.Static
     ,_meta
     ,__position
     ,__symbol
+    ,__size
     ,_entityTag
     ,_objects
     ,_items
@@ -39,7 +40,7 @@ data Components b = Components
     }
 
 data Meta b where
-    ObjectMeta          :: (Int, Int) -> Char -> Meta Object
+    ObjectMeta          :: (Int, Int) -> Char -> Size -> Meta Object
     ItemMeta            :: Meta Item
 
 data Entity b = Entity
@@ -81,16 +82,21 @@ makeLensesFor
 
 __position :: Lens' (Meta Object) (Int, Int)
 __position
-    = lens  (\(ObjectMeta p _)      -> p)
-            (\(ObjectMeta _ c) p    -> ObjectMeta p c)
+    = lens  (\(ObjectMeta p _ _)    -> p)
+            (\(ObjectMeta _ c s) p  -> ObjectMeta p c s)
 
 __symbol :: Lens' (Meta Object) Char
 __symbol
-    = lens  (\(ObjectMeta _ c)      -> c)
-            (\(ObjectMeta p _) c    -> ObjectMeta p c)
+    = lens  (\(ObjectMeta _ c _)    -> c)
+            (\(ObjectMeta p _ s) c  -> ObjectMeta p c s)
+
+__size :: Lens' (Meta Object) Size
+__size
+    = lens  (\(ObjectMeta _ _ s)    -> s)
+            (\(ObjectMeta p c _) s  -> ObjectMeta p c s)
 
 mkMeta :: Witness b -> Meta b
-mkMeta Object   = ObjectMeta (0,0) '?'
+mkMeta Object   = ObjectMeta (0,0) '?' Large
 mkMeta Item     = ItemMeta
 
 seed :: Witness b -> Id -> Tag b -> Entity b

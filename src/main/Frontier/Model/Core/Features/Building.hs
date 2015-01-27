@@ -83,12 +83,14 @@ feature env@Env{..} _com = Feature {..} where
             Object
             (WorldItemTag HammerTag)
             ((_position     .~ (5,5))
-            .(_symbol       .~ '/'))
+            .(_symbol       .~ '/')
+            .(_size         .~ Small))
          . create
             Object
             (WorldItemTag AxeTag)
             ((_position     .~ (9,7))
-            .(_symbol       .~ '/'))
+            .(_symbol       .~ '/')
+            .(_size         .~ Small))
          . (foldr ((.) . mkTree) id
            . take 100
            $ zip (randoms . mkStdGen $ initParam)

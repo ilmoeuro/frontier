@@ -54,6 +54,8 @@ test-suite Tests
                    HUnit,
                    tasty-quickcheck,
                    QuickCheck,
+                   smallcheck,
+                   tasty-smallcheck,
                    lens >= 4.7 && < 4.8
   other-modules:   
                    Frontier.Prelude,

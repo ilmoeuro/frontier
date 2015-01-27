@@ -14,7 +14,11 @@ import Frontier.Model.Core.Testing.Static
 import Test.QuickCheck
 
 instance Show (Meta Object) where
-    show (ObjectMeta pos char)  = "ObjectMeta " ++ show pos ++ show char
+    show (ObjectMeta pos char size)
+        = "ObjectMeta "
+        ++ show pos ++ " "
+        ++ show char ++ " "
+        ++ show size
 instance Show (Meta Item) where
     show ItemMeta               = "ItemMeta"
 
