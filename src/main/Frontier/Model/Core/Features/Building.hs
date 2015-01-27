@@ -102,10 +102,10 @@ feature env@Env{..} _com = Feature {..} where
 
     command :: String -> Action w
     -- Building
-    command c | c `elem` ["bh", "bj", "bk", "bl"] = build where
+    command c | c `elem` ["Bh", "Bj", "Bk", "Bl"] = build where
         filterByComponent p = filter (\e -> p (e ^# _com))
         move = case c of
-            ('b':x:_)   -> moveToDir env x
+            (_:x:_)     -> moveToDir env x
             _           -> id
         createWall = withAll Object $ \objs -> compose
             [create Object OpaqueTag
@@ -124,7 +124,7 @@ feature env@Env{..} _com = Feature {..} where
                     . createWall
                 _ -> id
     -- Chopping
-    command c | c `elem` ["ch", "cj", "ck", "cl"] =
+    command c | c `elem` ["Ch", "Cj", "Ck", "Cl"] =
         withAll Object $ \objs -> compose
             [ destroy Object obj
             . create Item LumberTag id
@@ -136,7 +136,7 @@ feature env@Env{..} _com = Feature {..} where
             ]
       where
         move = case c of
-            ('c':x:_)   -> moveToDir env x
+            (_:x:_)     -> moveToDir env x
             _           -> id
     command _ = id
 

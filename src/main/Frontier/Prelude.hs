@@ -6,6 +6,7 @@ module Frontier.Prelude
     ,when'
     ,itemHandles
     ,combineEquals
+    ,composeN
     ) where
 
 import Control.Lens
@@ -31,3 +32,6 @@ combineEquals = combine . map (,1) where
     combine ((x,n):(y,1):xs) | x == y   = combine ((x,n+1):xs)
     combine (x:xs)                      = x : combine xs
     combine []                          = []
+
+composeN :: Int -> (a -> a) -> a -> a
+composeN = compose .: replicate

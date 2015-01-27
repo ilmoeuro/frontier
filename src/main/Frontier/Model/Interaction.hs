@@ -56,9 +56,9 @@ welcomeMessage =
     ,"j - move down"
     ,"k - move up"
     ,"l - move right"
-    ,"b - build (takes a direction as argument)"
-    ,"p - pickup (takes a direction as argument)"
-    ,"! - show inventory"
+    ,"B - build (takes a direction as argument)"
+    ,"P - pickup (takes a direction as argument)"
+    ,"i - show inventory"
     ,""
     ,"Symbols:"
     ,"@ - you"
@@ -96,14 +96,14 @@ getToken
                | isDigit c      -> return . TokenCount . read $ [c]
                | otherwise      -> return . TokenCmd $ ""
   where
-    nullary x       = x `elem` "hjklq'*!\"#¤%&/()=?@{[]}\\+<>,;.:-_"
-    unary x         = not (nullary x) && x `elem` ['a'..'z']
-    binary x        = x `elem` ['A'..'Z']
+    nullary x       = x `elem` ['a'..'z']
+    unary x         = x `elem` ['A'..'Z']
+    binary x        = x `elem` "+!\"#%&/()=?@${[]}\\'*<,.->;:_|"
 
 model :: ModelM ()
 model = do
     yield (Message welcomeMessage)
-    _ <- await
+    void await
     runCore Core.Init
     go
   where

@@ -82,10 +82,10 @@ feature env@Env{..} _com = Feature {..} where
             (x:_)   -> moveToDir env x
             _       -> id
     -- Show inventory
-    command c | c == "!" =
+    command c | c == "i" =
         withAll Item $ \items ->
             message
-                . (++)
+                . flip (++)
                 . (:[])
                 . intercalate "\n"
                 . zipWith annotate itemHandles
@@ -100,11 +100,11 @@ feature env@Env{..} _com = Feature {..} where
                 | otherwise
                     = handle : " - " ++ item ++ " (x" ++ show count ++ ")"
     -- Object pickup
-    command c | c `elem` ["ph", "pj", "pk", "pl"] =
+    command c | c `elem` ["Ph", "Pj", "Pk", "Pl"] =
         withAll Object $ \objs -> compose
             [ destroy Object obj
             . create Item (getItemTag obj) id
-            . message (++ ["Picked up " ++ (name . getItemTag) obj])
+            . message (++ ["Picked up " ++ (name . getItemTag) obj ++ "."])
             | obj <- objs
             , pc <- objs
             , (obj ^# _com) `matches` _WorldItem
