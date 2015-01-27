@@ -30,6 +30,7 @@ data Tag b where
     OpaqueTag           :: Tag b
 
 deriving instance Eq (Tag b)
+deriving instance Show (Tag b)
 
 type Action w = w -> w
 

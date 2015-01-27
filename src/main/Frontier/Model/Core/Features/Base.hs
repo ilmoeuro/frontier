@@ -4,6 +4,7 @@
 {-# LANGUAGE RankNTypes          #-}
 {-# LANGUAGE RecordWildCards     #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE StandaloneDeriving  #-}
 module Frontier.Model.Core.Features.Base
     (Component()
     ,fromTag
@@ -21,6 +22,8 @@ data Component a where
     PlayerCharacter             :: Component Object
     WorldItem                   :: Tag Item -> Component Object
     Unknown                     :: Component a
+
+deriving instance (Show (Component a))
 
 _PlayerCharacter :: Prism' (Component Object) ()
 _PlayerCharacter = prism'
