@@ -25,7 +25,7 @@ env :: Env World Entity
 env = Env {..} where
     create :: Witness b -> Tag b -> (Entity b -> Entity b) -> Action World
     create wit s fn w@World{lastUid}
-        = (_entities wit %~ ((fn . seed wit lastUid) s :))
+        = (_entities wit %~ (++ [fn . seed wit lastUid $ s]))
         . (_lastUid +~ 1)
         $ w
 

@@ -88,9 +88,17 @@ feature env@Env{..} _com = Feature {..} where
                 . (++)
                 . (:[])
                 . intercalate "\n"
-                $   [ show num ++ " - " ++ name (item ^. _tag)
-                    | (num, item) :: (Int, e Item) <- zip [1..] items
-                    ]
+                . zipWith annotate itemHandles
+                . combineEquals
+                . sort
+                . map (name . (^. _tag))
+                $ items
+            where
+              annotate handle (item, count)
+                | count == 1
+                    = handle : " - " ++ item
+                | otherwise
+                    = handle : " - " ++ item ++ " (x" ++ show count ++ ")"
     -- Object pickup
     command c | c `elem` ["ph", "pj", "pk", "pl"] =
         withAll Object $ \objs -> compose
@@ -105,11 +113,13 @@ feature env@Env{..} _com = Feature {..} where
             ]
       where
         getItemTag obj | WorldItem s <- obj ^# _com = s
-        getItemTag _ = error "Base.hs: Trying to get tag of non-WorldItem"
+        getItemTag _ = error "Base.hs: Trying to get itemTag of non-WorldItem"
         move = case c of
             (_:x:_) -> moveToDir env x
             _       -> id
     command _ = id
 
     step :: Action w
-    step = message (const [])
+    step =
+        -- Clear previous messages
+        message (const [])

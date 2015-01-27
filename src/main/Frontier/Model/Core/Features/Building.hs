@@ -66,6 +66,7 @@ fromTag :: Tag b -> Component b
 fromTag PlayerCharacterTag     =  PlayerCharacter
 fromTag HammerTag              =  Hammer
 fromTag AxeTag                 =  Axe
+fromTag LumberTag              =  Lumber
 fromTag _                      =  Unknown
 
 feature :: forall e w. Env w e
@@ -126,7 +127,7 @@ feature env@Env{..} _com = Feature {..} where
     command c | c `elem` ["ch", "cj", "ck", "cl"] =
         withAll Object $ \objs -> compose
             [ destroy Object obj
-            . create Item OpaqueTag (_com #~ Lumber)
+            . create Item LumberTag id
             | obj <- objs
             , pc <- objs
             , (obj ^# _com) `matches` _Tree

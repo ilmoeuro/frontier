@@ -57,6 +57,8 @@ welcomeMessage =
     ,"k - move up"
     ,"l - move right"
     ,"b - build (takes a direction as argument)"
+    ,"p - pickup (takes a direction as argument)"
+    ,"! - show inventory"
     ,""
     ,"Symbols:"
     ,"@ - you"
