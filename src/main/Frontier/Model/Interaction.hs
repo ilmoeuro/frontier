@@ -74,8 +74,10 @@ runCore input =
   where
     showResult (Core.Display msg sprites)
         | '\n' `elem` msg = do
-            yield . Message $ splitOn "\n" msg
-            _ <- await
+            let msgs = splitOn "; " msg
+            forM_ msgs $ \msg' -> do
+                yield . Message $ splitOn "\n" msg'
+                void await
             yield (Display "" sprites)
         | otherwise       = yield (Display msg sprites)
 
