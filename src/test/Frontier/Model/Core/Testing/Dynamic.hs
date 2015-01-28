@@ -50,5 +50,8 @@ env fromTag = Env {..} where
     _symbol :: Lens' (Entity c Object) Char
     _symbol = _meta . __symbol
 
+    _zIndex :: Lens' (Entity c Object) Int
+    _zIndex = _meta . __zIndex
+
     _tag :: Lens' (Entity c b) (Tag b)
     _tag = _entityTag

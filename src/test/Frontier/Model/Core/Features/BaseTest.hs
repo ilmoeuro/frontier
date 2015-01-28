@@ -4,6 +4,7 @@
 
 {-# LANGUAGE FlexibleInstances  #-}
 {-# LANGUAGE GADTs              #-}
+{-# LANGUAGE PatternGuards      #-}
 {-# LANGUAGE RecordWildCards    #-}
 {-# LANGUAGE StandaloneDeriving #-}
 module Frontier.Model.Core.Features.BaseTest
@@ -14,6 +15,7 @@ import Control.Applicative
 import Control.Lens hiding (elements)
 import Data.Function
 import Data.List hiding (init)
+import Debug.Trace
 import Prelude hiding (init)
 
 import Test.QuickCheck
@@ -45,30 +47,39 @@ instance Arbitrary WorldWithPlayerCharacter where
     arbitrary
         = fmap
           (\(itemTags, objectTags, positions, playerPos) ->
-            WorldWithPlayerCharacter
-            . foldr (.) id
-                ([create Item tag id
-                 | tag <- itemTags
-                 ] ++
-                 [create Object tag (_position .~ pos)
-                 | (tag, pos) <- zip objectTags
-                        (nub
-                        . filter (/= playerPos)
-                        $ positions)
-                 , tag /= PlayerCharacterTag
-                 ] ++
-                 [create Object
-                         PlayerCharacterTag
-                         (_position .~ playerPos)])
-            $ mkWorld)
+              WorldWithPlayerCharacter
+              . foldr ($) mkWorld
+              . concat
+              $
+              [   [create Item tag id
+                  | tag <- itemTags
+                  ]
+              ,   [create Object tag (_position .~ pos)
+                  | (tag, pos) <- zip objectTags
+                                . nub
+                                . filter (/= clamp playerPos)
+                                . map clamp
+                                $ positions
+                  , tag /= PlayerCharacterTag
+                  ]
+              ,   [create Object
+                       PlayerCharacterTag
+                       (_position .~ clamp playerPos)
+                  ]
+              ])
           arbitrary
+        where
+          clamp (x,y) = (abs x `rem` 5, abs y `rem` 5)
 
 instance Arbitrary MovementCommands where
     arbitrary = MovementCommands <$> (listOf . elements $ ["h","j","k","l"])
 
 featuresBaseTest = testGroup "Frontier.Model.Core.Features.Base"
-    [testCase "Player character present after init" $
-        (Ftr.PlayerCharacterTag `elem` (map entityTag . objects $ init mkWorld))
+    [testCase "Player character present after init"
+        $ ((Ftr.PlayerCharacterTag `elem`)
+            . map entityTag
+            . objects
+            $ init mkWorld)
         @? "No object with PlayerCharacterTag"
 
     ,QC.testProperty "Messages cleared on step"
@@ -78,6 +89,11 @@ featuresBaseTest = testGroup "Frontier.Model.Core.Features.Base"
     ,QC.testProperty "Move doesn't cause collisions"
         $ \(WorldWithPlayerCharacter world) (MovementCommands cmds) ->
         let world' = foldr ((.) . command) id cmds world
-            positions = map (view _position) . objects $ world'
-        in length (nub positions) == length positions
+            positions = map (view _position)
+                      . filter (not . isWorldItem)
+                      . objects
+                      $ world'
+            isWorldItem e | WorldItemTag _ <- entityTag e = True
+            isWorldItem _                                 = False
+        in positions === nub positions
     ]

@@ -44,6 +44,7 @@ data Env w e = Env
     ,message            :: ([String] -> [String]) -> Action w
     ,_position          :: Lens' (e Object) (Int, Int)
     ,_symbol            :: Lens' (e Object) Char
+    ,_zIndex            :: Lens' (e Object) Int
     ,_tag               :: forall b. Lens' (e b) (Tag b)
     }
 

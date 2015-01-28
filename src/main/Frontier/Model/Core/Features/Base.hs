@@ -69,7 +69,8 @@ feature env@Env{..} _com = Feature {..} where
             Object
             PlayerCharacterTag
             ((_position     .~ (1,1))
-            .(_symbol       .~ '@'))
+            .(_symbol       .~ '@')
+            .(_zIndex       .~ -1000))
 
     command :: String -> Action w
     -- Moving
@@ -78,14 +79,16 @@ feature env@Env{..} _com = Feature {..} where
             [ modify Object move pc
             | pc <- objs
             , (pc ^# _com) `matches` _PlayerCharacter
-            , noCollision env (move pc) objs
+            , noCollision env (move pc) (filter (not . isWorldItem) objs)
             ]
       where
+        isWorldItem e | WorldItem _ <- e ^# _com = True
+        isWorldItem _                            = False
         move = case c of
             (x:_)   -> moveToDir env x
             _       -> id
     -- Show inventory
-    command c | c == "i" =
+    command "i" =
         withAll Item $ \items ->
             message
                 . flip (++)
@@ -103,7 +106,7 @@ feature env@Env{..} _com = Feature {..} where
                 | otherwise
                     = handle : " - " ++ item ++ " (x" ++ show count ++ ")"
     -- Object pickup
-    command c | c `elem` ["Ph", "Pj", "Pk", "Pl"] =
+    command "p" =
         withAll Object $ \objs -> compose
             [ destroy Object obj
             . create Item (getItemTag obj) id
@@ -112,14 +115,11 @@ feature env@Env{..} _com = Feature {..} where
             , pc <- objs
             , (obj ^# _com) `matches` _WorldItem
             , (pc ^# _com) `matches` _PlayerCharacter
-            , move pc^._position == obj^._position
+            , pc^._position == obj^._position
             ]
       where
         getItemTag obj | WorldItem s <- obj ^# _com = s
         getItemTag _ = error "Base.hs: Trying to get itemTag of non-WorldItem"
-        move = case c of
-            (_:x:_) -> moveToDir env x
-            _       -> id
     command _ = id
 
     step :: Action w

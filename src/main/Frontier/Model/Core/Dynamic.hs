@@ -54,6 +54,9 @@ env = Env {..} where
     _symbol :: Lens' (Entity Object) Char
     _symbol = _meta . __symbol
 
+    _zIndex :: Lens' (Entity Object) Int
+    _zIndex = _meta . __zIndex
+
     _tag :: Lens' (Entity b) (Tag b)
     _tag = _entityTag
 

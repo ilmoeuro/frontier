@@ -10,6 +10,7 @@ module Frontier.Model.Core
 import Control.Applicative
 import Control.Lens
 import Control.Monad.State.Strict
+import Data.Function
 import Data.List hiding (init)
 import Frontier.Model.Core.Dynamic
 import Frontier.Model.Core.Static
@@ -51,6 +52,7 @@ display = Display <$> msg <*> sprites
                 . unModelState
                 <$> get
         sprites = map toSprite
+                . sortBy (compare `on` (^. _meta . __zIndex))
                 . objects
                 . unModelState
                 <$> get
