@@ -53,6 +53,7 @@ fromTag _                       =  Unknown
 
 name :: Tag b -> String
 name PlayerCharacterTag         = "Player character"
+name WallTag                    = "Wall"
 name HammerTag                  = "Hammer"
 name AxeTag                     = "Axe"
 name LumberTag                  = "Lumber"
@@ -65,13 +66,31 @@ feature :: forall e w. Env w e
 feature env@Env{..} _com = Feature {..} where
 
     init :: Action w
-    init = create
-            Object
-            PlayerCharacterTag
-            ((_position     .~ (1,1))
-            .(_symbol       .~ '@')
-            .(_zIndex       .~ -1000))
-
+    init = compose . concat $
+         [  [create
+                Object
+                PlayerCharacterTag
+                ((_position     .~ (1,1))
+                .(_symbol       .~ '@')
+                .(_zIndex       .~ -1000))
+            ]
+         ,  [create Object WallTag ((_position .~ (i,0))
+                                   .(_symbol   .~ '#'))
+            | i <- [0..79]
+            ]
+         ,  [create Object WallTag ((_position .~ (i,22))
+                                   .(_symbol   .~ '#'))
+            | i <- [0..79]
+            ]
+         ,  [create Object WallTag ((_position .~ (0,i))
+                                   .(_symbol   .~ '#'))
+            | i <- [1..21]
+            ]
+         ,  [create Object WallTag ((_position .~ (79,i))
+                                   .(_symbol   .~ '#'))
+            | i <- [1..21]
+            ]
+         ]
     command :: String -> Action w
     -- Moving
     command c | c `elem` ["h", "j", "k", "l"] =

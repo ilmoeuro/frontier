@@ -96,7 +96,7 @@ feature env@Env{..} _com = Feature {..} where
       where
         mkTree (x', y') =
             create Object OpaqueTag
-                ((_position     .~ (abs x' `rem` 80, abs y' `rem` 23))
+                ((_position     .~ (1 + abs x' `rem` 78, 1 + abs y' `rem` 21))
                 .(_symbol       .~ '^')
                 .(_com          #~ Tree))
 

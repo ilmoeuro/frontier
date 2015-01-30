@@ -23,6 +23,7 @@ data Witness a where
 
 data Tag b where
     PlayerCharacterTag  :: Tag Object
+    WallTag             :: Tag Object
     HammerTag           :: Tag Item
     AxeTag              :: Tag Item
     LumberTag           :: Tag Item
@@ -35,13 +36,16 @@ deriving instance Show (Tag b)
 type Action w = w -> w
 
 data Env w e = Env
+    -- Perform actions
     {create             :: forall b. Witness b -> Tag b -> (e b -> e b) -> Action w
-    ,withAll            :: forall b. Witness b -> ([e b] -> Action w) -> Action w
     ,modify             :: forall b. Witness b -> (e b -> e b) -> e b -> Action w
     ,destroy            :: forall b. Witness b -> e b -> Action w
-    ,is                 :: forall b. e b -> e b -> Bool
-    ,withInitParam      :: (Int -> Action w) -> Action w
     ,message            :: ([String] -> [String]) -> Action w
+    -- Supply arguments to continuations
+    ,withAll            :: forall b. Witness b -> ([e b] -> Action w) -> Action w
+    ,withInitParam      :: (Int -> Action w) -> Action w
+    -- Query & modify entities
+    ,is                 :: forall b. e b -> e b -> Bool
     ,_position          :: Lens' (e Object) (Int, Int)
     ,_symbol            :: Lens' (e Object) Char
     ,_zIndex            :: Lens' (e Object) Int
