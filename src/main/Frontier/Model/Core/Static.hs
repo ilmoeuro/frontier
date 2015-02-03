@@ -22,6 +22,7 @@ module Frontier.Model.Core.Static
     ,_lastUid
     ,_initParam
     ,_messages
+    ,_dirtyTiles
     ,mkMeta
     ,seed
     ,mkWorld
@@ -56,6 +57,7 @@ data World = World
     ,lastUid            :: Id
     ,initParam          :: Int
     ,messages           :: [String]
+    ,dirtyTiles         :: [(Int, Int)]
     }
 
 makeLensesFor
@@ -77,6 +79,7 @@ makeLensesFor
     ,("lastUid"             ,"_lastUid")
     ,("initParam"           ,"_initParam")
     ,("messages"            ,"_messages")
+    ,("dirtyTiles"          ,"_dirtyTiles")
     ]
     ''World
 
@@ -118,4 +121,5 @@ mkWorld = World
     ,lastUid    = 0
     ,initParam  = 0
     ,messages   = []
+    ,dirtyTiles = []
     }

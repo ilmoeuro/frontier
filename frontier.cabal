@@ -11,6 +11,9 @@ executable frontier
                    base >= 4,
                    containers >= 0.5 && < 0.6,
                    text >= 1.1 && < 1.2,
+                   -- TODO: version
+                   bytestring,
+                   utf8-string,
                    free >= 4.9 && < 5.0,
                    lens >= 4.7 && < 4.8,
                    transformers >= 0.3.0.0 && < 0.4,

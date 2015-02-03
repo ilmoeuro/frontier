@@ -72,7 +72,7 @@ feature env@Env{..} _com = Feature {..} where
                 PlayerCharacterTag
                 ((_position     .~ (1,1))
                 .(_symbol       .~ '@')
-                .(_zIndex       .~ -1000))
+                .(_zIndex       .~ 1000))
             ]
          ,  [create Object WallTag ((_position .~ (i,0))
                                    .(_symbol   .~ '#'))

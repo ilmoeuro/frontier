@@ -1,3 +1,5 @@
+{-# LANGUAGE NamedFieldPuns #-}
+{-# LANGUAGE TupleSections  #-}
 module Frontier.Model.Core
     (Sprite
     ,Input(..)
@@ -45,21 +47,31 @@ runAction :: (World -> World) -> ModelM ()
 runAction f = modify (ModelState . f . unModelState)
 
 display :: ModelM Output
-display = Display <$> msg <*> sprites
+display = do
+        result <- Display <$> msg <*> ((++) <$> blanks <*> sprites)
+        modify (ModelState . (_dirtyTiles .~ []) . unModelState)
+        return result
     where
-        msg    =  intercalate "; "
-                . messages
-                . unModelState
+        blanks   = map (,' ')
+                 . dirtyTiles
+                 . unModelState
+                 <$> get
+        msg      = intercalate "; "
+                 . messages
+                 . unModelState
+                 <$> get
+        sprites  = map toSprite
+                 . sortBy (compare `on` (^. _meta . __zIndex))
+                 . dirtyObjects
+                 . unModelState
                 <$> get
-        sprites = map toSprite
-                . sortBy (compare `on` (^. _meta . __zIndex))
-                . objects
-                . unModelState
-                <$> get
+        dirtyObjects World{dirtyTiles, objects}
+                 = filter (view (_meta . __position . to (`elem` dirtyTiles)))
+                   objects
         toSprite =
-                (,)
-                <$> view (_meta . __position)
-                <*> view (_meta . __symbol)
+                 (,)
+                 <$> view (_meta . __position)
+                 <*> view (_meta . __symbol)
 
 model :: Input -> ModelM Output
 model Init              = runAction init        >> display

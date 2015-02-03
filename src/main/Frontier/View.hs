@@ -6,33 +6,31 @@ module Frontier.View
 
 import Control.Monad
 import Control.Monad.Managed
-import Data.Default
+import Data.ByteString.UTF8 (fromString)
+import Data.List
 import Frontier.Model (Sprite)
 import Graphics.Vty hiding (update)
-import MVC hiding (Input)
+import MVC hiding (Input, Output)
 import MVC.Prelude
 
-spritesView :: (Picture -> IO ()) -> Managed (View (String, [Sprite]))
-spritesView update
+spritesView :: Output -> Managed (View (String, [Sprite]))
+spritesView output
     = consumer
-    . forever
-    $ await >>= \(msg, sprites) ->
-       liftIO
-       . update
-       . picForLayers
-       $ map toLayer sprites
-         ++ [msgLayer msg]
-  where
-    toLayer ((x, y), c) = translate x y . char def $ c
-    msgLayer = translate 0 23 . string def
+    $ do
+        hideCursor output
+        forever $ do
+            (_, sprites) <- await
+            forM_ sprites $ \((x, y), c) -> liftIO $ do
+                setCursorPos output x y
+                outputByteBuffer output (fromString [c])
 
-messageView :: (Picture -> IO ()) -> Managed (View [String])
-messageView update
+messageView :: Output -> Managed (View [String])
+messageView output
     = consumer
     . forever
-    $ await >>= \strings ->
-       liftIO
-       . update
-       . picForImage
-       . foldr ((<->) . string def) emptyImage
-       $ strings
+    $ await >>= \strings -> liftIO $ do
+        setCursorPos output 0 0
+        outputByteBuffer output
+            ( fromString
+            . intercalate "\n"
+            $ strings)

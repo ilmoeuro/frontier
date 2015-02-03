@@ -23,21 +23,33 @@ _entities Item = _items
 
 env :: Env World Entity
 env = Env {..} where
+
+    dirtify :: Witness b -> Entity b -> Action World
+    dirtify wit entity = case wit of
+                Object -> _dirtyTiles %~ (entity ^. _position :)
+                _      -> id
+
     create :: Witness b -> Tag b -> (Entity b -> Entity b) -> Action World
     create wit s fn w@World{lastUid}
-        = (_entities wit %~ (++ [fn . seed wit lastUid $ s]))
+        = (_entities wit %~ (++ [entity]))
         . (_lastUid +~ 1)
+        . dirtify wit entity
         $ w
+      where
+        entity = fn . seed wit lastUid $ s
 
     withAll :: Witness b -> ([Entity b] -> Action World) -> Action World
     withAll Object act w = act (objects w) w
     withAll Item   act w = act (items w) w
 
     modify :: Witness b -> (Entity b -> Entity b) -> Entity b -> Action World
-    modify wit fn e = _entities wit . each . filtered (`is` e) %~ fn
+    modify wit fn e = dirtify wit e
+                    . dirtify wit (fn e)
+                    . (_entities wit . each . filtered (`is` e) %~ fn)
 
     destroy :: Witness b -> Entity b -> Action World
-    destroy wit e = _entities wit %~ filter (not . (`is` e))
+    destroy wit e = dirtify wit e
+                  . (_entities wit %~ filter (not . (`is` e)))
 
     is :: Entity b -> Entity b -> Bool
     is = (==) `on` uid

@@ -20,11 +20,11 @@ getVty = managed $ \inside -> do
     return result
 
 io :: Managed (View Model.Output, Controller Model.Input)
-io = getVty >>= \Vty{inputIface, update} ->
+io = getVty >>= \Vty{inputIface, outputIface} ->
     let Input{_eventChannel} = inputIface
         controller = keyboardController _eventChannel
-        view =  fmap (handles _Display) (spritesView update)
-             <> fmap (handles _Message) (messageView update)
+        view =  fmap (handles _Display) (spritesView outputIface)
+             <> fmap (handles _Message) (messageView outputIface)
     in (,) <$> view <*> controller
 
 main :: IO ()
