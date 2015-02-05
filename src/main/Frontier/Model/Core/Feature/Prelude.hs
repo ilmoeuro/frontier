@@ -19,7 +19,7 @@ moveToDir Env{..} = \case
 noCollision :: Env w e -> e Object -> [e Object] -> Bool
 noCollision Env{..} obj objs =
         and
-            [position obj /= position obj'
+            [ position obj /= position obj'
             | obj' <- objs
             , not (obj `is` obj')
             ]

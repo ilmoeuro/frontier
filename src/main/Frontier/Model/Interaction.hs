@@ -38,10 +38,12 @@ makePrisms ''Output
 data ModelState = ModelState
     { coreState :: Core.ModelState
     , count     :: Int
+    , lastCmd   :: String
     }
 makeLensesFor
     [("coreState"   ,"_coreState")
     ,("count"       ,"_count")
+    ,("lastCmd"     ,"_lastCmd")
     ]
     ''ModelState
 
@@ -53,14 +55,22 @@ welcomeMessage :: [String]
 welcomeMessage =
     ["Welcome to Frontier!"
     ,""
-    ,"Commands:"
+    ,"Some basic commands:"
     ,"h - move left"
     ,"j - move down"
     ,"k - move up"
     ,"l - move right"
+    ,"C - chop (takes a direction as argument)"
     ,"B - build (takes a direction as argument)"
-    ,"P - pickup (takes a direction as argument)"
+    ,"p - pickup"
     ,"i - show inventory"
+    ,"r - repeat last command"
+    ,"q - quit"
+    ,""
+    ,"Arrow keys are aliases for `hjkl`"
+    ,"Esc is an alias for `q`"
+    ,""
+    ,"You can prefix any command with a count."
     ,""
     ,"Symbols:"
     ,"@ - you"
@@ -71,7 +81,7 @@ welcomeMessage =
     ]
 
 mkModelState :: ModelState
-mkModelState = ModelState Core.mkModelState 0
+mkModelState = ModelState Core.mkModelState 0 ""
 
 runCore :: Core.ModelM a -> ModelM a
 runCore = lift . zoom _coreState
@@ -112,19 +122,27 @@ model = do
     runCore Core.allObjects >>= yield . DisplayFull ""
     go
   where
-    go = getToken >>= \case
-            (TokenCmd c)        -> unless (c == "q") $ do
-                                        n <- gets (max 1 . count)
-                                        replicateM_ n $ do
-                                            runCore Core.step
-                                            runCore $ Core.command c
-                                            displayOutput
-                                        _count .= 0
-                                        go
-            (TokenCount n)      -> do
-                                        _count *= 10
-                                        _count += n
-                                        go
+    runToken = \case
+        (TokenCmd "q")      -> return ()
+        (TokenCmd "r")      -> use _lastCmd >>= runToken . TokenCmd
+        (TokenCmd c)        -> do
+                                    n <- gets (max 1 . count)
+                                    replicateM_ n $ do
+                                        runCore Core.step
+                                        runCore $ Core.command c
+                                        displayOutput
+                                    when (c `notElem` ["h", "j", "k", "l"])
+                                        (_lastCmd .= c)
+                                    _count .= 0
+                                    go
+        (TokenCount n)      -> do
+                                    _count *= 10
+                                    _count += n
+                                    go
+    go = getToken >>= runToken
 
 _unused1 :: ModelState -> Core.ModelState
 _unused1 = coreState
+
+_unused2 :: ModelState -> String
+_unused2 = lastCmd

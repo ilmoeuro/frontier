@@ -37,24 +37,24 @@ type Action w = w -> w
 
 data Env w e = Env
     -- Perform actions
-    {create             :: forall b. Witness b -> Tag b -> (e b -> e b) -> Action w
-    ,modify             :: forall b. Witness b -> (e b -> e b) -> e b -> Action w
-    ,destroy            :: forall b. Witness b -> e b -> Action w
-    ,message            :: ([String] -> [String]) -> Action w
+    { create            :: forall b. Witness b -> Tag b -> (e b -> e b) -> Action w
+    , modify            :: forall b. Witness b -> (e b -> e b) -> e b -> Action w
+    , destroy           :: forall b. Witness b -> e b -> Action w
+    , message           :: ([String] -> [String]) -> Action w
     -- Supply arguments to continuations
-    ,withAll            :: forall b. Witness b -> ([e b] -> Action w) -> Action w
-    ,withInitParam      :: (Int -> Action w) -> Action w
+    , withAll           :: forall b. Witness b -> ([e b] -> Action w) -> Action w
+    , withInitParam     :: (Int -> Action w) -> Action w
     -- Query & modify entities
-    ,is                 :: forall b. e b -> e b -> Bool
-    ,_position          :: Lens' (e Object) (Int, Int)
-    ,_symbol            :: Lens' (e Object) Char
-    ,_zIndex            :: Lens' (e Object) Int
-    ,_tag               :: forall b. Lens' (e b) (Tag b)
+    , is                :: forall b. e b -> e b -> Bool
+    , _position         :: Lens' (e Object) (Int, Int)
+    , _symbol           :: Lens' (e Object) Char
+    , _zIndex           :: Lens' (e Object) Int
+    , _tag              :: forall b. Lens' (e b) (Tag b)
     }
 
 data Feature w = Feature
-    {init               :: Action w
-    ,command            :: String
+    { init              :: Action w
+    , command           :: String
                         -> Action w
-    ,step               :: Action w
+    , step              :: Action w
     }
