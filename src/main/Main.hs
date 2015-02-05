@@ -23,8 +23,12 @@ io :: Managed (View Model.Output, Controller Model.Input)
 io = getVty >>= \Vty{inputIface, outputIface} ->
     let Input{_eventChannel} = inputIface
         controller = keyboardController _eventChannel
-        view =  fmap (handles _Display) (spritesView outputIface)
-             <> fmap (handles _Message) (messageView outputIface)
+        view =  fmap (handles _DisplayDelta)
+                        (spritesView NoClearScreen outputIface)
+             <> fmap (handles _DisplayFull)
+                        (spritesView ClearScreen outputIface)
+             <> fmap (handles _Message)
+                        (messageView outputIface)
     in (,) <$> view <*> controller
 
 main :: IO ()

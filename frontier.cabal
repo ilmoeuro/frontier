@@ -28,6 +28,7 @@ executable frontier
                    safe >= 0.3 && < 0.4,
                    cond >= 0.4 && < 0.5,
                    data-default >= 0.5.3 && < 0.6,
+                   ansi-terminal >= 0.6 && < 0.7,
                    vty >= 5.2.6 && < 5.3
   ghc-options:     -Wall -threaded -O3
   other-modules:   

@@ -7,7 +7,8 @@ module Frontier.Model.Interaction
     ,Input(..)
     ,Output(..)
     ,ModelState()
-    ,_Display
+    ,_DisplayDelta
+    ,_DisplayFull
     ,_Message
     ,mkModelState
     ,model
@@ -28,7 +29,8 @@ data Input
     = KeyChar Char
 
 data Output
-    = Display String [Sprite]
+    = DisplayDelta String [Sprite]
+    | DisplayFull String [Sprite]
     | Message [String]
 
 makePrisms ''Output
@@ -68,21 +70,23 @@ welcomeMessage =
     ,"Press any key to start"
     ]
 
-runCore :: Core.Input -> ModelM ()
-runCore input =
-    lift (zoom _coreState (Core.model input)) >>= showResult
-  where
-    showResult (Core.Display msg sprites)
-        | '\n' `elem` msg = do
-            let msgs = splitOn "; " msg
-            forM_ msgs $ \msg' -> do
-                yield . Message $ splitOn "\n" msg'
-                void await
-            yield (Display "" sprites)
-        | otherwise       = yield (Display msg sprites)
-
 mkModelState :: ModelState
 mkModelState = ModelState Core.mkModelState 0
+
+runCore :: Core.ModelM a -> ModelM a
+runCore = lift . zoom _coreState
+
+displayOutput :: ModelM ()
+displayOutput = do
+    msg <- runCore Core.lastMessage
+    objs <- runCore Core.changedObjects
+    case splitOn "\n" msg of
+        []      -> yield (DisplayDelta "" objs)
+        [_]     -> yield (DisplayDelta msg objs)
+        msgs    -> do
+            yield (Message msgs)
+            void await
+            runCore Core.allObjects >>= yield . DisplayFull ""
 
 getToken :: ModelM Token
 getToken
@@ -104,15 +108,17 @@ model :: ModelM ()
 model = do
     yield (Message welcomeMessage)
     void await
-    runCore Core.Init
+    runCore Core.init
+    runCore Core.allObjects >>= yield . DisplayFull ""
     go
   where
     go = getToken >>= \case
             (TokenCmd c)        -> unless (c == "q") $ do
                                         n <- gets (max 1 . count)
                                         replicateM_ n $ do
-                                            runCore Core.Step
-                                            runCore (Core.Command c)
+                                            runCore Core.step
+                                            runCore $ Core.command c
+                                            displayOutput
                                         _count .= 0
                                         go
             (TokenCount n)      -> do

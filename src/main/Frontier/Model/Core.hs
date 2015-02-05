@@ -1,12 +1,16 @@
 {-# LANGUAGE NamedFieldPuns #-}
 {-# LANGUAGE TupleSections  #-}
 module Frontier.Model.Core
-    (Sprite
-    ,Input(..)
-    ,Output(..)
+    (Object
+    ,ModelM
     ,ModelState()
     ,mkModelState
-    ,model
+    ,lastMessage
+    ,allObjects
+    ,changedObjects
+    ,init
+    ,command
+    ,step
     ) where
 
 import Control.Applicative
@@ -14,27 +18,11 @@ import Control.Lens
 import Control.Monad.State.Strict
 import Data.Function
 import Data.List hiding (init)
-import Frontier.Model.Core.Dynamic
+import qualified Frontier.Model.Core.Dynamic as Dyn
 import Frontier.Model.Core.Static
 import Prelude hiding (init)
 
-type Sprite = ((Int, Int), Char)
-
-{--
-    Nullary commands:   h, j, k, l, q, punctuation ("q" is never valid)
-    Unary commands:     a-z (sans hjklq) and one character
-    Binary commands:    A-Z and two characters
-    Numbers are reserved for count
---}
-data Input
-    = Init
-    | Command String
-    | Step
-    deriving (Show)
-
-data Output
-    = Display String [Sprite]
-    deriving (Show)
+type Object = ((Int, Int), Char)
 
 newtype ModelState = ModelState { unModelState :: World }
 
@@ -46,18 +34,32 @@ mkModelState = ModelState mkWorld
 runAction :: (World -> World) -> ModelM ()
 runAction f = modify (ModelState . f . unModelState)
 
-display :: ModelM Output
-display = do
-        result <- Display <$> msg <*> ((++) <$> blanks <*> sprites)
-        modify (ModelState . (_dirtyTiles .~ []) . unModelState)
+lastMessage :: ModelM String
+lastMessage = intercalate "; "
+            . messages
+            . unModelState
+            <$> get
+
+allObjects :: ModelM [Object]
+allObjects = map toSprite
+           . sortBy (compare `on` (^. _meta . __zIndex))
+           . objects
+           . unModelState
+           <$> get
+    where toSprite =
+                 (,)
+                 <$> view (_meta . __position)
+                 <*> view (_meta . __symbol)
+
+
+changedObjects :: ModelM [Object]
+changedObjects = do
+        result <- (++) <$> blanks <*> sprites
+        runAction (_dirtyTiles .~ [])
         return result
     where
         blanks   = map (,' ')
                  . dirtyTiles
-                 . unModelState
-                 <$> get
-        msg      = intercalate "; "
-                 . messages
                  . unModelState
                  <$> get
         sprites  = map toSprite
@@ -73,7 +75,11 @@ display = do
                  <$> view (_meta . __position)
                  <*> view (_meta . __symbol)
 
-model :: Input -> ModelM Output
-model Init              = runAction init        >> display
-model (Command s)       = runAction (command s) >> display
-model Step              = runAction step        >> display
+init :: ModelM ()
+init = runAction Dyn.init
+
+command :: String -> ModelM ()
+command = runAction . Dyn.command
+
+step :: ModelM ()
+step = runAction Dyn.step

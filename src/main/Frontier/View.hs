@@ -1,11 +1,13 @@
 {-# LANGUAGE LambdaCase #-}
 module Frontier.View
-    (spritesView
+    (Mode(..)
+    ,spritesView
     ,messageView
     ) where
 
 import Control.Monad
 import Control.Monad.Managed
+import qualified Data.ByteString.Char8 as Bs8
 import Data.ByteString.UTF8 (fromString)
 import Data.List
 import Frontier.Model (Sprite)
@@ -13,16 +15,38 @@ import Graphics.Vty hiding (update)
 import MVC hiding (Input, Output)
 import MVC.Prelude
 
-spritesView :: Output -> Managed (View (String, [Sprite]))
-spritesView output
+data Mode
+    = ClearScreen
+    | NoClearScreen
+    deriving (Eq)
+
+spritesView :: Mode -> Output -> Managed (View (String, [Sprite]))
+spritesView mode output
     = consumer
     $ do
         hideCursor output
         forever $ do
-            (_, sprites) <- await
+            (msg, sprites) <- await
+            when (mode == ClearScreen) $ liftIO clearScreen
             forM_ sprites $ \((x, y), c) -> liftIO $ do
                 setCursorPos output x y
                 outputByteBuffer output (fromString [c])
+            showMessage $ replicate 80 ' '
+            showMessage msg
+  where
+    clearScreen = do
+        (w,h) <- displayBounds output
+        forM_ [0..h] $ \y -> do
+            setCursorPos output 0 y
+            outputByteBuffer output
+                . Bs8.replicate w
+                $ ' '
+    showMessage msg = do
+        setCursorPos output 0 23
+        liftIO
+            . outputByteBuffer output
+            . fromString
+            $ msg
 
 messageView :: Output -> Managed (View [String])
 messageView output
