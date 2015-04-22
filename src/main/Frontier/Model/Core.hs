@@ -51,7 +51,6 @@ allObjects = map toSprite
                  <$> view (_meta . __position)
                  <*> view (_meta . __symbol)
 
-
 changedObjects :: ModelM [Object]
 changedObjects = do
         result <- (++) <$> blanks <*> sprites
