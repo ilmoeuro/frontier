@@ -21,7 +21,7 @@ executable frontier
                    split >= 0.2.2 && < 0.3,
                    mtl >= 2.1 && < 2.2,
                    pipes >= 4.1 && < 4.2,
-                   mvc >= 1.0 && < 1.1,
+                   mvc == 1.0.3,
                    managed >= 1.0.0 && < 1.1,
                    multiset >= 0.2 && < 0.3,
                    extra >= 1.0 && < 1.1,
