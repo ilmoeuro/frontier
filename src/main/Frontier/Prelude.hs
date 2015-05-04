@@ -10,7 +10,6 @@ module Frontier.Prelude
     ) where
 
 import Control.Lens
-import Debug.Trace
 
 (.:) :: (c -> d) -> (a -> b -> c) -> a -> b -> d
 (.:) = (.).(.)

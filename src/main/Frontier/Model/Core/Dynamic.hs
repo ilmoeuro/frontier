@@ -6,11 +6,12 @@ module Frontier.Model.Core.Dynamic
     (init
     ,command
     ,step
+    ,loadLevel
     ) where
 
 import Control.Lens
 import Data.Function
-import Frontier.Model.Core.Feature hiding (command, init, step)
+import Frontier.Model.Core.Feature hiding (command, init, step, loadLevel)
 import qualified Frontier.Model.Core.Feature as Ftr
 import qualified Frontier.Model.Core.Features.Base as Base
 import qualified Frontier.Model.Core.Features.Building as Building
@@ -89,3 +90,6 @@ command c = universal (`Ftr.command` c)
 
 step :: Action World
 step = universal Ftr.step
+
+loadLevel :: LevelSource -> Action World
+loadLevel levelSource = universal (`Ftr.loadLevel` levelSource)

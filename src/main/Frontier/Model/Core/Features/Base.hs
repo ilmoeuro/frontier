@@ -145,3 +145,6 @@ feature env@Env{..} _com = Feature {..} where
     step =
         -- Clear previous messages
         message (const [])
+
+    loadLevel :: LevelSource -> Action w
+    loadLevel = const id

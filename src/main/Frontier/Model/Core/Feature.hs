@@ -3,7 +3,8 @@
 {-# LANGUAGE RankNTypes         #-}
 {-# LANGUAGE StandaloneDeriving #-}
 module Frontier.Model.Core.Feature
-    (Env(..)
+    (LevelSource
+    ,Env(..)
     ,Feature(..)
     ,Item()
     ,Object()
@@ -13,6 +14,8 @@ module Frontier.Model.Core.Feature
     ) where
 
 import Control.Lens
+
+type LevelSource = String
 
 data Item
 data Object
@@ -71,4 +74,6 @@ data Feature w = Feature
     , command           :: String
                         -> Action w
     , step              :: Action w
+    , loadLevel         :: LevelSource
+                        -> Action w
     }

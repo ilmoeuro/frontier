@@ -27,41 +27,6 @@ data Component a where
 
 deriving instance Eq (Component a)
 
-_PlayerCharacter :: Prism' (Component Object) ()
-_PlayerCharacter = prism'
-    (const PlayerCharacter)
-    (\case
-        PlayerCharacter         -> Just ()
-        _                       -> Nothing)
-
-_Tree :: Prism' (Component Object) ()
-_Tree = prism'
-    (const Tree)
-    (\case
-        Tree                    -> Just ()
-        _                       -> Nothing)
-
-_Hammer :: Prism' (Component Item) ()
-_Hammer = prism'
-    (const Hammer)
-    (\case
-        Hammer                  -> Just ()
-        _                       -> Nothing)
-
-_Axe :: Prism' (Component Item) ()
-_Axe = prism'
-    (const Axe)
-    (\case
-        Axe                     -> Just ()
-        _                       -> Nothing)
-
-_Unknown :: Prism' (Component Object) ()
-_Unknown = prism'
-    (const Unknown)
-    (\case
-        Unknown                 -> Just ()
-        _                       -> Nothing)
-
 fromTag :: Tag b -> Component b
 fromTag PlayerCharacterTag     =  PlayerCharacter
 fromTag HammerTag              =  Hammer
@@ -113,7 +78,7 @@ feature env@Env{..} _com = Feature {..} where
                 . (_position   .~ (obj ^. _position))
                 . (_symbol     .~ '#'))
             | obj <- objs
-            , (obj ^# _com) `matches` _PlayerCharacter
+            , obj ^# _com == PlayerCharacter
             , noCollision env (move obj) objs
             ]
         build = withAll Item $ \items ->
@@ -130,8 +95,8 @@ feature env@Env{..} _com = Feature {..} where
             . create Item LumberTag id
             | obj <- objs
             , pc <- objs
-            , (obj ^# _com) `matches` _Tree
-            , (pc ^# _com) `matches` _PlayerCharacter
+            , obj ^# _com == Tree
+            , pc ^# _com == PlayerCharacter
             , move pc^._position == obj^._position
             ]
       where
@@ -142,3 +107,6 @@ feature env@Env{..} _com = Feature {..} where
 
     step :: Action w
     step = id
+
+    loadLevel :: LevelSource -> Action w
+    loadLevel = const id

@@ -65,7 +65,7 @@ changedObjects = do
                  . sortBy (compare `on` (^. _meta . __zIndex))
                  . dirtyObjects
                  . unModelState
-                <$> get
+                 <$> get
         dirtyObjects World{dirtyTiles, objects}
                  = filter (view (_meta . __position . to (`elem` dirtyTiles)))
                    objects

@@ -15,6 +15,7 @@ module Frontier.Model.Interaction
     ) where
 
 import Control.Lens
+import Control.Monad
 import Control.Monad.State.Strict
 import Data.Char
 import Data.List
@@ -56,20 +57,17 @@ welcomeMessage =
     ["Welcome to Frontier!"
     ,""
     ,"Some basic commands:"
-    ,"h - move left"
-    ,"j - move down"
-    ,"k - move up"
-    ,"l - move right"
-    ,"C - chop (takes a direction as argument)"
-    ,"B - build (takes a direction as argument)"
-    ,"p - pickup"
-    ,"i - show inventory"
-    ,"r - repeat last command"
-    ,"q - quit"
-    ,""
-    ,"Arrow keys are aliases for `hjkl`"
-    ,"Esc is an alias for `q`"
-    ,""
+    ,"h/← - move left"
+    ,"j/↓ - move down"
+    ,"k/↑ - move up"
+    ,"l/→ - move right"
+    ,"C   - chop (takes a direction as argument)"
+    ,"B   - build (takes a direction as argument)"
+    ,"p   - pickup"
+    ,"i   - show inventory"
+    ,"r   - repeat last command"
+    ,"q   - quit"
+    ,"?   - show this help message"
     ,"You can prefix any command with a count."
     ,""
     ,"Symbols:"
@@ -77,7 +75,7 @@ welcomeMessage =
     ,"^ - tree"
     ,"# - wall"
     ,""
-    ,"Press any key to start"
+    ,"Press any key to continue"
     ]
 
 mkModelState :: ModelState
@@ -85,6 +83,13 @@ mkModelState = ModelState Core.mkModelState 0 ""
 
 runCore :: Core.ModelM a -> ModelM a
 runCore = lift . zoom _coreState
+
+displayLongMessage :: [String] -> ModelM ()
+displayLongMessage msgs =
+    forM_ (chunksOf 24 msgs) $ \msgs' -> do
+        clearScreen
+        yield (Message msgs')
+        void await
 
 displayOutput :: ModelM ()
 displayOutput = do
@@ -94,8 +99,7 @@ displayOutput = do
         []      -> yield (DisplayDelta "" objs)
         [_]     -> yield (DisplayDelta msg objs)
         msgs    -> do
-            yield (Message msgs)
-            void await
+            displayLongMessage msgs
             runCore Core.allObjects >>= yield . DisplayFull ""
 
 getToken :: ModelM Token
@@ -110,20 +114,28 @@ getToken
                | isDigit c      -> return . TokenCount . read $ [c]
                | otherwise      -> return . TokenCmd $ ""
   where
-    nullary x       = x `elem` ['a'..'z']
+    nullary x       = x `elem` ['a'..'z'] ++ "?"
     unary x         = x `elem` ['A'..'Z']
-    binary x        = x `elem` "+!\"#%&/()=?@${[]}\\'*<,.->;:_|"
+    binary x        = x `elem` "+!\"#%&/()=@${[]}\\'*<,.->;:_|"
+
+clearScreen :: ModelM ()
+clearScreen = yield (DisplayFull "" [])
+
+showWelcomeScreen :: ModelM ()
+showWelcomeScreen =
+    displayLongMessage welcomeMessage >>
+    runCore Core.allObjects           >>= 
+    yield . DisplayFull ""
 
 model :: ModelM ()
 model = do
-    yield (Message welcomeMessage)
-    void await
     runCore Core.init
-    runCore Core.allObjects >>= yield . DisplayFull ""
+    showWelcomeScreen
     go
   where
     runToken = \case
         (TokenCmd "q")      -> return ()
+        (TokenCmd "?")      -> showWelcomeScreen >> go
         (TokenCmd "r")      -> use _lastCmd >>= runToken . TokenCmd
         (TokenCmd c)        -> do
                                     n <- gets (max 1 . count)
