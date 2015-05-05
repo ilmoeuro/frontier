@@ -87,7 +87,6 @@ runCore = lift . zoom _coreState
 displayLongMessage :: [String] -> ModelM ()
 displayLongMessage msgs =
     forM_ (chunksOf 24 msgs) $ \msgs' -> do
-        clearScreen
         yield (Message msgs')
         void await
 
@@ -117,9 +116,6 @@ getToken
     nullary x       = x `elem` ['a'..'z'] ++ "?"
     unary x         = x `elem` ['A'..'Z']
     binary x        = x `elem` "+!\"#%&/()=@${[]}\\'*<,.->;:_|"
-
-clearScreen :: ModelM ()
-clearScreen = yield (DisplayFull "" [])
 
 showWelcomeScreen :: ModelM ()
 showWelcomeScreen =

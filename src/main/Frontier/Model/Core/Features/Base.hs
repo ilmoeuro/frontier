@@ -112,6 +112,7 @@ feature env@Env{..} _com = Feature {..} where
             message
                 . flip (++)
                 . (:[])
+                . ("Inventory\n\n" ++)
                 . intercalate "\n"
                 . zipWith annotate itemHandles
                 . combineEquals

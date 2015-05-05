@@ -13,7 +13,9 @@ module Frontier.Model.Core.Feature
     ,Action
     ) where
 
+import Prelude hiding (init)
 import Control.Lens
+import Data.Monoid
 
 type LevelSource = String
 
@@ -77,3 +79,17 @@ data Feature w = Feature
     , loadLevel         :: LevelSource
                         -> Action w
     }
+
+instance Monoid (Feature w) where
+    mempty = Feature
+        { init          = id
+        , command       = const id
+        , step          = id
+        , loadLevel     = const id
+        }
+    mappend f1 f2 = Feature
+        { init          = init f1 . init f2
+        , command       = \x -> command f1 x . command f2 x
+        , step          = step f1 . step f2
+        , loadLevel     = \x -> loadLevel f1 x . loadLevel f2 x
+        }

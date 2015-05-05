@@ -20,27 +20,28 @@ data Mode
     | NoClearScreen
     deriving (Eq)
 
+clearScreen :: Output -> IO ()
+clearScreen output = do
+    (w,h) <- displayBounds output
+    forM_ [0..h] $ \y -> do
+        setCursorPos output 0 y
+        outputByteBuffer output
+            . Bs8.replicate w
+            $ ' '
+
 spritesView :: Mode -> Output -> Managed (View (String, [Sprite]))
 spritesView mode output
-    = consumer
-    $ do
+    = consumer $ do
         hideCursor output
         forever $ do
             (msg, sprites) <- await
-            when (mode == ClearScreen) $ liftIO clearScreen
+            when (mode == ClearScreen) $ liftIO (clearScreen output)
             forM_ sprites $ \((x, y), c) -> liftIO $ do
                 setCursorPos output x y
                 outputByteBuffer output (fromString [c])
             showMessage $ replicate 80 ' '
             showMessage msg
   where
-    clearScreen = do
-        (w,h) <- displayBounds output
-        forM_ [0..h] $ \y -> do
-            setCursorPos output 0 y
-            outputByteBuffer output
-                . Bs8.replicate w
-                $ ' '
     showMessage msg = do
         setCursorPos output 0 23
         liftIO
@@ -53,6 +54,7 @@ messageView output
     = consumer
     . forever
     $ await >>= \strings -> liftIO $ do
+        clearScreen output
         setCursorPos output 0 0
         outputByteBuffer output
             ( fromString

@@ -1,3 +1,5 @@
+{-# OPTIONS_GHC -fno-warn-missing-signatures #-}
+
 {-# LANGUAGE GADTs           #-}
 {-# LANGUAGE NamedFieldPuns  #-}
 {-# LANGUAGE RankNTypes      #-}
@@ -10,6 +12,7 @@ module Frontier.Model.Core.Dynamic
     ) where
 
 import Control.Lens
+import Data.Monoid
 import Data.Function
 import Frontier.Model.Core.Feature hiding (command, init, step, loadLevel)
 import qualified Frontier.Model.Core.Feature as Ftr
@@ -73,23 +76,5 @@ env = Env {..} where
     _tag :: Lens' (Entity b) (Tag b)
     _tag = _entityTag
 
-universal
-    :: (forall w.
-           Feature w
-        -> Action w)
-    -> Action World
-universal f
-    = f (Base.feature env (_components._base))
-    . f (Building.feature env (_components._building))
-
-init :: Action World
-init = universal Ftr.init
-
-command :: String -> Action World
-command c = universal (`Ftr.command` c)
-
-step :: Action World
-step = universal Ftr.step
-
-loadLevel :: LevelSource -> Action World
-loadLevel levelSource = universal (`Ftr.loadLevel` levelSource)
+Feature{..} =  Base.feature env (_components._base)
+            <> Building.feature env (_components._building)
