@@ -35,9 +35,11 @@ runAction :: (World -> World) -> ModelM ()
 runAction f = modify (ModelState . f . unModelState)
 
 lastMessage :: ModelM String
-lastMessage = intercalate "; "
-            . messages
-            . unModelState
+lastMessage = (\x -> if any ('\n' `elem`) x
+                then intercalate "" x
+                else intercalate "; " x)
+            .   messages
+            .   unModelState
             <$> get
 
 allObjects :: ModelM [Object]

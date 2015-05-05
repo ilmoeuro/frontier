@@ -60,6 +60,28 @@ name LumberTag                  = "Lumber"
 name (WorldItemTag x)           = "Item: " ++ name x
 name OpaqueTag                  = "???"
 
+welcomeMessage :: [String]
+welcomeMessage =
+    ["Welcome to Frontier!"
+    ,""
+    ,"Symbols"
+    ,"  @ - you"
+    ,"  ^ - tree"
+    ,"  # - wall"
+    ,""
+    ,"Commands"
+    ,"  q   - quit"
+    ,"  ?   - show this help message"
+    ,"  h/← - move left"
+    ,"  j/↓ - move down"
+    ,"  k/↑ - move up"
+    ,"  l/→ - move right"
+    ,"  p   - pickup"
+    ,"  i   - show inventory"
+    ,"  r   - repeat last command"
+    ,"  0-9 - repeat next command multiple times"
+    ]
+
 feature :: forall e w. Env w e
         -> (forall b. ALens' (e b) (Component b))
         -> Feature w
@@ -90,8 +112,11 @@ feature env@Env{..} _com = Feature {..} where
                                    .(_symbol   .~ '#'))
             | i <- [1..21]
             ]
+         ,  [message ([unlines welcomeMessage] ++)]
          ]
     command :: String -> Action w
+    -- Help screen
+    command "?" = message ([unlines welcomeMessage] ++)
     -- Moving
     command c | c `elem` ["h", "j", "k", "l"] =
         withAll Object $ \objs -> compose
@@ -112,7 +137,7 @@ feature env@Env{..} _com = Feature {..} where
             message
                 . flip (++)
                 . (:[])
-                . ("Inventory\n\n" ++)
+                . ("Inventory:\n\n" ++)
                 . intercalate "\n"
                 . zipWith annotate itemHandles
                 . combineEquals

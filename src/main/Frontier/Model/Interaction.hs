@@ -52,32 +52,6 @@ type ModelM = Pipe Input Output (State ModelState)
 
 data Token = TokenCmd String | TokenCount Int
 
-welcomeMessage :: [String]
-welcomeMessage =
-    ["Welcome to Frontier!"
-    ,""
-    ,"Some basic commands:"
-    ,"h/← - move left"
-    ,"j/↓ - move down"
-    ,"k/↑ - move up"
-    ,"l/→ - move right"
-    ,"C   - chop (takes a direction as argument)"
-    ,"B   - build (takes a direction as argument)"
-    ,"p   - pickup"
-    ,"i   - show inventory"
-    ,"r   - repeat last command"
-    ,"q   - quit"
-    ,"?   - show this help message"
-    ,"You can prefix any command with a count."
-    ,""
-    ,"Symbols:"
-    ,"@ - you"
-    ,"^ - tree"
-    ,"# - wall"
-    ,""
-    ,"Press any key to continue"
-    ]
-
 mkModelState :: ModelState
 mkModelState = ModelState Core.mkModelState 0 ""
 
@@ -117,21 +91,14 @@ getToken
     unary x         = x `elem` ['A'..'Z']
     binary x        = x `elem` "+!\"#%&/()=@${[]}\\'*<,.->;:_|"
 
-showWelcomeScreen :: ModelM ()
-showWelcomeScreen =
-    displayLongMessage welcomeMessage >>
-    runCore Core.allObjects           >>= 
-    yield . DisplayFull ""
-
 model :: ModelM ()
 model = do
     runCore Core.init
-    showWelcomeScreen
+    displayOutput
     go
   where
     runToken = \case
         (TokenCmd "q")      -> return ()
-        (TokenCmd "?")      -> showWelcomeScreen >> go
         (TokenCmd "r")      -> use _lastCmd >>= runToken . TokenCmd
         (TokenCmd c)        -> do
                                     n <- gets (max 1 . count)

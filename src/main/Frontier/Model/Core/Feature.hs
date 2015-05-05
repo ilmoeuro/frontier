@@ -18,6 +18,7 @@ import Control.Lens
 import Data.Monoid
 
 type LevelSource = String
+type InitParam = Int
 
 data Item
 data Object
@@ -59,7 +60,7 @@ data Env w e = Env
     , withAll           :: forall b. Witness b
                         -> ([e b] -> Action w)
                         -> Action w
-    , withInitParam     :: (Int -> Action w)
+    , withInitParam     :: (InitParam -> Action w)
                         -> Action w
     -- Query & modify entities
     , is                :: forall b. e b

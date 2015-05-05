@@ -34,6 +34,12 @@ fromTag AxeTag                 =  Axe
 fromTag LumberTag              =  Lumber
 fromTag _                      =  Unknown
 
+welcomeMessage :: [String]
+welcomeMessage =
+    ["  C   - chop (takes a direction as argument)"
+    ,"  B   - build (takes a direction as argument)"
+    ]
+
 feature :: forall e w. Env w e
         -> (forall b. ALens' (e b) (Component b))
         -> Feature w
@@ -44,7 +50,8 @@ feature env@Env{..} _com = Feature {..} where
 
     init :: Action w
     init = withInitParam $ \initParam ->
-           create
+           message ([unlines welcomeMessage] ++)
+         . create
             Object
             (WorldItemTag HammerTag)
             ((_position     .~ (5,5))
@@ -66,6 +73,8 @@ feature env@Env{..} _com = Feature {..} where
                 .(_com          #~ Tree))
 
     command :: String -> Action w
+    -- Help message
+    command "?" = message ([unlines welcomeMessage] ++)
     -- Building
     command c | c `elem` ["Bh", "Bj", "Bk", "Bl"] = build where
         filterByComponent p = filter (\e -> p (e ^# _com))
