@@ -18,7 +18,7 @@ import Control.Lens
 import Control.Monad.State.Strict
 import Data.Function
 import Data.List hiding (init)
-import Frontier.Model.Core.Feature (Action(Action))
+import Frontier.Model.Core.Dynamic (Action(Action))
 import qualified Frontier.Model.Core.Dynamic as Dyn
 import Frontier.Model.Core.Static
 import Prelude hiding (init)

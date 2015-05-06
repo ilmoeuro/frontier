@@ -9,6 +9,7 @@ module Frontier.Model.Core.Dynamic
     ,command
     ,step
     ,loadLevel
+    ,Action(Action)
     ) where
 
 import Control.Applicative
