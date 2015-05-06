@@ -10,7 +10,7 @@ module Frontier.Model.Core.Feature
     ,Object()
     ,Witness(..)
     ,Tag(..)
-    ,Action
+    ,Action(..)
     ) where
 
 import Prelude hiding (init)
@@ -39,7 +39,11 @@ data Tag b where
 deriving instance Eq (Tag b)
 deriving instance Show (Tag b)
 
-type Action w = w -> w
+newtype Action w = Action { runAction :: w -> w }
+
+instance Monoid (Action w) where
+    mempty = Action id
+    mappend (Action f) (Action g) = Action (g . f)
 
 data Env w e = Env
     -- Perform actions
@@ -83,14 +87,14 @@ data Feature w = Feature
 
 instance Monoid (Feature w) where
     mempty = Feature
-        { init          = id
-        , command       = const id
-        , step          = id
-        , loadLevel     = const id
+        { init          = mempty
+        , command       = const mempty
+        , step          = mempty
+        , loadLevel     = const mempty
         }
     mappend f1 f2 = Feature
-        { init          = init f1 . init f2
-        , command       = \x -> command f1 x . command f2 x
-        , step          = step f1 . step f2
-        , loadLevel     = \x -> loadLevel f1 x . loadLevel f2 x
+        { init          = init f1 <> init f2
+        , command       = \x -> command f1 x <> command f2 x
+        , step          = step f1 <> step f2
+        , loadLevel     = \x -> loadLevel f1 x <> loadLevel f2 x
         }

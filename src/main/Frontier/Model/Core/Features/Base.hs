@@ -12,6 +12,7 @@ module Frontier.Model.Core.Features.Base
     ) where
 
 import Control.Lens
+import Data.Monoid
 import Data.List hiding (init)
 import Frontier.Model.Core.Feature
 import Frontier.Model.Core.Feature.Prelude
@@ -88,7 +89,7 @@ feature :: forall e w. Env w e
 feature env@Env{..} _com = Feature {..} where
 
     init :: Action w
-    init = compose . concat $
+    init = mconcat . mconcat $
          [  [create
                 Object
                 PlayerCharacterTag
@@ -119,7 +120,7 @@ feature env@Env{..} _com = Feature {..} where
     command "?" = message ([unlines welcomeMessage] ++)
     -- Moving
     command c | c `elem` ["h", "j", "k", "l"] =
-        withAll Object $ \objs -> compose
+        withAll Object $ \objs -> mconcat
             [ modify Object move pc
             | pc <- objs
             , (pc ^# _com) `matches` _PlayerCharacter
@@ -152,10 +153,10 @@ feature env@Env{..} _com = Feature {..} where
                     = handle : " - " ++ item ++ " (x" ++ show count ++ ")"
     -- Object pickup
     command "p" =
-        withAll Object $ \objs -> compose
-            [ destroy Object obj
-            . create Item (getItemTag obj) id
-            . message (++ ["Picked up " ++ (name . getItemTag) obj ++ "."])
+        withAll Object $ \objs -> mconcat
+            [  destroy Object obj
+            <> create Item (getItemTag obj) id
+            <> message (++ ["Picked up " ++ (name . getItemTag) obj ++ "."])
             | obj <- objs
             , pc <- objs
             , (obj ^# _com) `matches` _WorldItem
@@ -165,7 +166,7 @@ feature env@Env{..} _com = Feature {..} where
       where
         getItemTag obj | WorldItem s <- obj ^# _com = s
         getItemTag _ = error "Base.hs: Trying to get itemTag of non-WorldItem"
-    command _ = id
+    command _ = mempty
 
     step :: Action w
     step =
@@ -173,4 +174,4 @@ feature env@Env{..} _com = Feature {..} where
         message (const [])
 
     loadLevel :: LevelSource -> Action w
-    loadLevel = const id
+    loadLevel = const mempty

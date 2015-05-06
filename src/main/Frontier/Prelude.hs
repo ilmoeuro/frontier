@@ -10,6 +10,7 @@ module Frontier.Prelude
     ) where
 
 import Control.Lens
+import Data.Monoid
 
 (.:) :: (c -> d) -> (a -> b -> c) -> a -> b -> d
 (.:) = (.).(.)
@@ -20,9 +21,9 @@ matches = not .: flip isn't
 compose :: [a -> a] -> a -> a
 compose = foldr (.) id
 
-when' :: Bool -> (w -> w) -> w -> w
+when' :: Monoid a => Bool -> a -> a
 when' True  x = x
-when' False _ = id
+when' False _ = mempty
 
 itemHandles :: String
 itemHandles = ['a'..'z'] ++ ['A'..'Z'] ++ ['0'..'9'] ++ ['!' .. '/']

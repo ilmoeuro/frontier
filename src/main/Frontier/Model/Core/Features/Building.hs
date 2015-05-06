@@ -10,6 +10,8 @@ module Frontier.Model.Core.Features.Building
     ,feature
     ) where
 
+import Data.Monoid
+import Data.Foldable (foldMap)
 import Control.Lens hiding (contains)
 import Frontier.Model.Core.Feature
 import Frontier.Model.Core.Feature.Prelude
@@ -49,19 +51,19 @@ feature env@Env{..} _com = Feature {..} where
     _com' = cloneLens _com
 
     init :: Action w
-    init = withInitParam $ \initParam ->
-           message ([unlines welcomeMessage] ++)
-         . create
+    init =  withInitParam $ \initParam ->
+            message ([unlines welcomeMessage] ++)
+         <> create
             Object
             (WorldItemTag HammerTag)
             ((_position     .~ (5,5))
             .(_symbol       .~ '/'))
-         . create
+         <> create
             Object
             (WorldItemTag AxeTag)
             ((_position     .~ (9,7))
             .(_symbol       .~ '/'))
-         . (foldr ((.) . mkTree) id
+         <> (foldMap mkTree
            . take 100
            $ zip (randoms . mkStdGen $ initParam)
                  (randoms . mkStdGen . (+1) $ initParam))
@@ -81,7 +83,7 @@ feature env@Env{..} _com = Feature {..} where
         move = case c of
             (_:x:_)     -> moveToDir env x
             _           -> id
-        createWall = withAll Object $ \objs -> compose
+        createWall = withAll Object $ \objs -> mconcat
             [create Object OpaqueTag
                 ( move
                 . (_position   .~ (obj ^. _position))
@@ -95,27 +97,27 @@ feature env@Env{..} _com = Feature {..} where
             $ case filterByComponent (== Lumber) items of
                 (lumber:_)  ->
                     destroy Item lumber
-                    . createWall
-                _ -> id
+                    <> createWall
+                _ -> mempty
     -- Chopping
     command c | c `elem` ["Ch", "Cj", "Ck", "Cl"] =
-        withAll Object $ \objs -> compose
-            [ destroy Object obj
-            . create Item LumberTag id
-            | obj <- objs
-            , pc <- objs
-            , obj ^# _com == Tree
-            , pc ^# _com == PlayerCharacter
-            , move pc^._position == obj^._position
+        withAll Object $ \objs -> mconcat
+            [  destroy Object obj
+            <> create Item LumberTag id
+            |  obj <- objs
+            ,  pc <- objs
+            ,  obj ^# _com == Tree
+            ,  pc ^# _com == PlayerCharacter
+            ,  move pc^._position == obj^._position
             ]
       where
         move = case c of
             (_:x:_)     -> moveToDir env x
             _           -> id
-    command _ = id
+    command _ = mempty
 
     step :: Action w
-    step = id
+    step = mempty
 
     loadLevel :: LevelSource -> Action w
-    loadLevel = const id
+    loadLevel = const mempty
