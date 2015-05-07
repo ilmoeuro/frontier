@@ -1,0 +1,14 @@
+cd /home/ilmoeuro/Projektit/frontier
+
+" Setup environment
+
+set autoindent
+set autowriteall
+set makeprg=cabal\ build
+
+" Open all Haskell files
+
+if g:localvimrc_sourced_once == 0
+    args /home/ilmoeuro/Projektit/frontier/**/*.hs /home/ilmoeuro/Projektit/frontier/*.cabal
+endif
+
