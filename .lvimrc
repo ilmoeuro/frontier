@@ -9,6 +9,6 @@ set makeprg=cabal\ build
 " Open all Haskell files
 
 if g:localvimrc_sourced_once == 0
-    args /home/ilmoeuro/Projektit/frontier/**/*.hs /home/ilmoeuro/Projektit/frontier/*.cabal
+    args /home/ilmoeuro/Projektit/frontier/src/**/*.hs /home/ilmoeuro/Projektit/frontier/*.cabal
 endif
 

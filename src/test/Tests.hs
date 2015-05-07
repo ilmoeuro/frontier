@@ -3,10 +3,10 @@
 {-# OPTIONS_GHC -fno-warn-unused-binds          #-}
 
 module Main where
-import Frontier.Model.Core.DynamicTest
-import Frontier.Model.Core.Features.BaseTest
-import Frontier.Model.Core.Features.BuildingTest
-import Frontier.Model.InteractionTest
+import Frontier.Core.DynamicTest
+import Frontier.Core.Features.BaseTest
+import Frontier.Core.Features.BuildingTest
+import Frontier.InteractionTest
 
 
 import Test.Tasty
@@ -18,5 +18,5 @@ main = defaultMain tests
 
 tests :: TestTree
 tests = testGroup "Tests"
-    [featuresBaseTest
+    [
     ]

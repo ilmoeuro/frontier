@@ -33,17 +33,13 @@ executable frontier
   ghc-options:     -Wall -threaded -O3
   other-modules:   
                    Frontier.Prelude,
-                   Frontier.Model.Core,
-                   Frontier.Model.Core.Feature,
-                   Frontier.Model.Core.Feature.Prelude,
-                   Frontier.Model.Core.Features.Base,
-                   Frontier.Model.Core.Features.Building,
-                   Frontier.Model.Core.Dynamic,
-                   Frontier.Model.Core.Static,
-                   Frontier.Model.Interaction,
-                   Frontier.Model,
-                   Frontier.Controller,
-                   Frontier.View
+                   Frontier.Core,
+                   Frontier.Core.Feature,
+                   Frontier.Core.Feature.Prelude,
+                   Frontier.Core.Features.Base,
+                   Frontier.Core.Features.Building,
+                   Frontier.Interaction,
+                   Frontier.IO
 
 test-suite Tests
   type:            exitcode-stdio-1.0
@@ -59,16 +55,5 @@ test-suite Tests
                    tasty-quickcheck,
                    QuickCheck,
                    lens >= 4.7 && < 4.8
-  other-modules:   
-                   Frontier.Prelude,
-                   Frontier.Model.Core.Feature,
-                   Frontier.Model.Core.Features.Base,
-                   Frontier.Model.Core.Features.BaseTest,
-                   Frontier.Model.Core.Testing.Static,
-                   Frontier.Model.Core.Testing.Dynamic,
-                   Frontier.Model.Core.Testing.Instances,
-                   Frontier.Model.Core.Dynamic,
-                   Frontier.Model.Core.DynamicTest,
-                   Frontier.Model.Interaction,
-                   Frontier.Model.InteractionTest
+--  other-modules:   
 

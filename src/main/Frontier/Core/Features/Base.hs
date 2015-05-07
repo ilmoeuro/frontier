@@ -5,7 +5,7 @@
 {-# LANGUAGE RecordWildCards     #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE StandaloneDeriving  #-}
-module Frontier.Model.Core.Features.Base
+module Frontier.Core.Features.Base
     (Component()
     ,fromTag
     ,feature
@@ -14,8 +14,8 @@ module Frontier.Model.Core.Features.Base
 import Control.Lens
 import Data.Monoid
 import Data.List hiding (init)
-import Frontier.Model.Core.Feature
-import Frontier.Model.Core.Feature.Prelude
+import Frontier.Core.Feature
+import Frontier.Core.Feature.Prelude
 import Frontier.Prelude
 import Prelude hiding (init)
 
@@ -113,11 +113,11 @@ feature env@Env{..} _com = Feature {..} where
                                    .(_symbol   .~ '#'))
             | i <- [1..21]
             ]
-         ,  [message ([unlines welcomeMessage] ++)]
+         ,  [message (++ [unlines welcomeMessage])]
          ]
     command :: String -> Action w
     -- Help screen
-    command "?" = message ([unlines welcomeMessage] ++)
+    command "?" = message (++ [unlines welcomeMessage])
     -- Moving
     command c | c `elem` ["h", "j", "k", "l"] =
         withAll Object $ \objs -> mconcat

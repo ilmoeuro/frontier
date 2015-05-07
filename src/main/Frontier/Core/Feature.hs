@@ -2,7 +2,7 @@
 {-# LANGUAGE GADTs              #-}
 {-# LANGUAGE RankNTypes         #-}
 {-# LANGUAGE StandaloneDeriving #-}
-module Frontier.Model.Core.Feature
+module Frontier.Core.Feature
     (LevelSource
     ,Env(..)
     ,Feature(..)

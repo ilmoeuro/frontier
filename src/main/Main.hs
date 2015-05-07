@@ -5,10 +5,9 @@ import Control.Applicative
 import Control.Monad
 import Control.Monad.Managed
 import Data.Default
-import Frontier.Controller
-import Frontier.Model.Interaction hiding (Input, Output)
-import qualified Frontier.Model.Interaction as Model
-import Frontier.View
+import Frontier.Interaction hiding (Input, Output)
+import qualified Frontier.Interaction as Model
+import Frontier.IO
 import Graphics.Vty
 import MVC hiding (Input, Output)
 

@@ -1,12 +1,12 @@
 {-# LANGUAGE LambdaCase      #-}
 {-# LANGUAGE RecordWildCards #-}
-module Frontier.Model.Core.Feature.Prelude
+module Frontier.Core.Feature.Prelude
     (noCollision
     ,moveToDir
     ) where
 
 import Control.Lens
-import Frontier.Model.Core.Feature
+import Frontier.Core.Feature
 
 moveToDir :: Env w e -> Char -> e Object -> e Object
 moveToDir Env{..} = \case

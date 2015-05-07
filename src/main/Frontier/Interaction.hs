@@ -2,7 +2,7 @@
 {-# LANGUAGE LambdaCase       #-}
 {-# LANGUAGE MultiWayIf       #-}
 {-# LANGUAGE TemplateHaskell  #-}
-module Frontier.Model.Interaction
+module Frontier.Interaction
     (Sprite
     ,Input(..)
     ,Output(..)
@@ -20,7 +20,7 @@ import Control.Monad.State.Strict
 import Data.Char
 import Data.List
 import Data.List.Split
-import qualified Frontier.Model.Core as Core
+import qualified Frontier.Core as Core
 import Pipes
 import Prelude hiding (init)
 
@@ -37,7 +37,7 @@ data Output
 makePrisms ''Output
 
 data ModelState = ModelState
-    { coreState :: Core.ModelState
+    { coreState :: Core.World
     , count     :: Int
     , lastCmd   :: String
     }
@@ -53,7 +53,7 @@ type ModelM = Pipe Input Output (State ModelState)
 data Token = TokenCmd String | TokenCount Int
 
 mkModelState :: ModelState
-mkModelState = ModelState Core.mkModelState 0 ""
+mkModelState = ModelState Core.mkWorld 0 ""
 
 runCore :: Core.ModelM a -> ModelM a
 runCore = lift . zoom _coreState
@@ -67,13 +67,13 @@ displayLongMessage msgs =
 displayOutput :: ModelM ()
 displayOutput = do
     msg <- runCore Core.lastMessage
-    objs <- runCore Core.changedObjects
+    objs <- runCore Core.changedSprites
     case splitOn "\n" msg of
         []      -> yield (DisplayDelta "" objs)
         [_]     -> yield (DisplayDelta msg objs)
         msgs    -> do
             displayLongMessage msgs
-            runCore Core.allObjects >>= yield . DisplayFull ""
+            runCore Core.allSprites >>= yield . DisplayFull ""
 
 getToken :: ModelM Token
 getToken
@@ -116,7 +116,7 @@ model = do
                                     go
     go = getToken >>= runToken
 
-_unused1 :: ModelState -> Core.ModelState
+_unused1 :: ModelState -> Core.World
 _unused1 = coreState
 
 _unused2 :: ModelState -> String

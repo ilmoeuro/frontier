@@ -4,7 +4,7 @@
 {-# LANGUAGE RecordWildCards     #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE StandaloneDeriving  #-}
-module Frontier.Model.Core.Features.Building
+module Frontier.Core.Features.Building
     (Component()
     ,fromTag
     ,feature
@@ -13,8 +13,8 @@ module Frontier.Model.Core.Features.Building
 import Data.Monoid
 import Data.Foldable (foldMap)
 import Control.Lens hiding (contains)
-import Frontier.Model.Core.Feature
-import Frontier.Model.Core.Feature.Prelude
+import Frontier.Core.Feature
+import Frontier.Core.Feature.Prelude
 import Frontier.Prelude
 import Prelude hiding (init)
 import System.Random
@@ -52,7 +52,7 @@ feature env@Env{..} _com = Feature {..} where
 
     init :: Action w
     init =  withInitParam $ \initParam ->
-            message ([unlines welcomeMessage] ++)
+            message (++ [unlines welcomeMessage])
          <> create
             Object
             (WorldItemTag HammerTag)
@@ -76,7 +76,7 @@ feature env@Env{..} _com = Feature {..} where
 
     command :: String -> Action w
     -- Help message
-    command "?" = message ([unlines welcomeMessage] ++)
+    command "?" = message (++ [unlines welcomeMessage])
     -- Building
     command c | c `elem` ["Bh", "Bj", "Bk", "Bl"] = build where
         filterByComponent p = filter (\e -> p (e ^# _com))
