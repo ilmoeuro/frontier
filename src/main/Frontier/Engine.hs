@@ -1,12 +1,27 @@
 {-# LANGUAGE GADTs           #-}
 {-# LANGUAGE NamedFieldPuns  #-}
-{-# LANGUAGE TupleSections  #-}
+{-# LANGUAGE TupleSections   #-}
 {-# LANGUAGE RankNTypes      #-}
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE TemplateHaskell #-}
-module Frontier.Core
-    (Object
-    ,ModelM
+{-# LANGUAGE CPP             #-}
+module Frontier.Engine
+    (
+#ifdef TEST
+     EngineM
+    ,Components(..)
+    ,Meta(..)
+    ,Entity(..)
+    ,World(..)
+    ,mkWorld
+    ,lastMessage
+    ,allSprites
+    ,changedSprites
+    ,init
+    ,command
+    ,step
+#else
+     EngineM
     ,World()
     ,mkWorld
     ,lastMessage
@@ -15,6 +30,7 @@ module Frontier.Core
     ,init
     ,command
     ,step
+#endif
     ) where
 
 import Prelude hiding (init)
@@ -25,16 +41,16 @@ import Control.Lens
 import Control.Monad.State.Strict (State)
 import qualified Control.Monad.State.Strict as St
 import Data.List hiding (init)
-import Frontier.Core.Feature hiding (init, command, step)
-import qualified Frontier.Core.Feature as Ftr
-import qualified Frontier.Core.Features.Base as Base
-import qualified Frontier.Core.Features.Building as Building
+import Frontier.Feature hiding (init, command, step)
+import qualified Frontier.Feature as Ftr
+import qualified Frontier.Feature.Base as Base
+import qualified Frontier.Feature.Building as Building
 
 type Id = Int
 
 type Sprite = ((Int, Int), Char)
 
-type ModelM = State World
+type EngineM = State World
 
 data Components b = Components
     {base               :: Base.Component b
@@ -123,7 +139,7 @@ mkWorld = World
     ,initParam  = 0
     ,messages   = []
     ,dirtyTiles = []
-    }
+}
 
 _entities :: Witness b -> Lens' World [Entity b]
 _entities Object = _objects
@@ -132,42 +148,42 @@ _entities Item = _items
 env :: Env World Entity
 env = Env {..} where
 
-    dirtify :: Witness b -> Entity b -> World -> World
-    dirtify wit entity = case wit of
-                Object -> _dirtyTiles %~ (entity ^. _position :)
-                _      -> id
+dirtify :: Witness b -> Entity b -> World -> World
+dirtify wit entity = case wit of
+            Object -> _dirtyTiles %~ (entity ^. _position :)
+            _      -> id
 
-    create :: Witness b -> Tag b -> (Entity b -> Entity b) -> Action World
-    create wit s fn
-        = Action $ \w@World{lastUid} ->
-            let
-              entity = fn . seed wit lastUid $ s
-            in
-                (_entities wit %~ (++ [entity]))
-              . (_lastUid +~ 1)
-              . dirtify wit entity
-              $ w
+create :: Witness b -> Tag b -> (Entity b -> Entity b) -> Action World
+create wit s fn
+    = Action $ \w@World{lastUid} ->
+        let
+          entity = fn . seed wit lastUid $ s
+        in
+            (_entities wit %~ (++ [entity]))
+          . (_lastUid +~ 1)
+          . dirtify wit entity
+          $ w
 
-    withAll :: Witness b -> ([Entity b] -> Action World) -> Action World
-    withAll Object act = Action $ \w -> runAction (act (objects w)) w
-    withAll Item   act = Action $ \w -> runAction (act (items w)) w
+withAll :: Witness b -> ([Entity b] -> Action World) -> Action World
+withAll Object act = Action $ \w -> runAction (act (objects w)) w
+withAll Item   act = Action $ \w -> runAction (act (items w)) w
 
-    modify :: Witness b -> (Entity b -> Entity b) -> Entity b -> Action World
-    modify wit fn e = Action
-                    $ dirtify wit e
-                    . dirtify wit (fn e)
-                    . (_entities wit . each . filtered (`is` e) %~ fn)
+modify :: Witness b -> (Entity b -> Entity b) -> Entity b -> Action World
+modify wit fn e = Action
+                $ dirtify wit e
+                . dirtify wit (fn e)
+                . (_entities wit . each . filtered (`is` e) %~ fn)
 
-    destroy :: Witness b -> Entity b -> Action World
-    destroy wit e = Action
-                  $ dirtify wit e
-                  . (_entities wit %~ filter (not . (`is` e)))
+destroy :: Witness b -> Entity b -> Action World
+destroy wit e = Action
+              $ dirtify wit e
+              . (_entities wit %~ filter (not . (`is` e)))
 
-    is :: Entity b -> Entity b -> Bool
-    is = (==) `on` uid
+is :: Entity b -> Entity b -> Bool
+is = (==) `on` uid
 
-    withInitParam :: (Int -> Action World) -> Action World
-    withInitParam act = Action $ \w -> runAction (act (initParam w)) w
+withInitParam :: (Int -> Action World) -> Action World
+withInitParam act = Action $ \w -> runAction (act (initParam w)) w
 
     message :: ([String] -> [String]) -> Action World
     message = Action <$> (_messages %~)
@@ -188,14 +204,14 @@ feature :: Feature World
 feature =  Base.feature env (_components._base)
         <> Building.feature env (_components._building)
 
-lastMessage :: ModelM String
+lastMessage :: EngineM String
 lastMessage = (\x -> if any ('\n' `elem`) x
                 then intercalate "" x
                 else intercalate "; " x)
             .   messages
             <$> St.get
 
-allSprites :: ModelM [Sprite]
+allSprites :: EngineM [Sprite]
 allSprites = map toSprite
            . sortBy (compare `on` (^. _meta . __zIndex))
            . objects
@@ -205,7 +221,7 @@ allSprites = map toSprite
                  <$> view (_meta . __position)
                  <*> view (_meta . __symbol)
 
-changedSprites :: ModelM [Sprite]
+changedSprites :: EngineM [Sprite]
 changedSprites = do
         result <- (++) <$> blanks <*> sprites
         St.modify $ _dirtyTiles .~ []
@@ -226,11 +242,11 @@ changedSprites = do
                  <$> view (_meta . __position)
                  <*> view (_meta . __symbol)
 
-init :: ModelM ()
+init :: EngineM ()
 init = St.modify . runAction $ Ftr.init feature
 
-command :: String -> ModelM ()
+command :: String -> EngineM ()
 command = St.modify . runAction . Ftr.command feature
 
-step :: ModelM ()
+step :: EngineM ()
 step = St.modify . runAction $ Ftr.step feature

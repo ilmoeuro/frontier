@@ -5,7 +5,7 @@
 {-# LANGUAGE RecordWildCards     #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE StandaloneDeriving  #-}
-module Frontier.Core.Features.Base
+module Frontier.Feature.Base
     (Component()
     ,fromTag
     ,feature
@@ -14,8 +14,7 @@ module Frontier.Core.Features.Base
 import Control.Lens
 import Data.Monoid
 import Data.List hiding (init)
-import Frontier.Core.Feature
-import Frontier.Core.Feature.Prelude
+import Frontier.Feature
 import Frontier.Prelude
 import Prelude hiding (init)
 

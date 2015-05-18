@@ -3,11 +3,6 @@
 {-# OPTIONS_GHC -fno-warn-unused-binds          #-}
 
 module Main where
-import Frontier.Core.DynamicTest
-import Frontier.Core.Features.BaseTest
-import Frontier.Core.Features.BuildingTest
-import Frontier.InteractionTest
-
 
 import Test.Tasty
 import Test.Tasty.HUnit

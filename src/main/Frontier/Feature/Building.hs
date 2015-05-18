@@ -4,7 +4,7 @@
 {-# LANGUAGE RecordWildCards     #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE StandaloneDeriving  #-}
-module Frontier.Core.Features.Building
+module Frontier.Feature.Building
     (Component()
     ,fromTag
     ,feature
@@ -13,8 +13,7 @@ module Frontier.Core.Features.Building
 import Data.Monoid
 import Data.Foldable (foldMap)
 import Control.Lens hiding (contains)
-import Frontier.Core.Feature
-import Frontier.Core.Feature.Prelude
+import Frontier.Feature
 import Frontier.Prelude
 import Prelude hiding (init)
 import System.Random

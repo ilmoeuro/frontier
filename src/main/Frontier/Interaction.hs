@@ -20,7 +20,7 @@ import Control.Monad.State.Strict
 import Data.Char
 import Data.List
 import Data.List.Split
-import qualified Frontier.Core as Core
+import qualified Frontier.Engine as Engine
 import Pipes
 import Prelude hiding (init)
 
@@ -37,7 +37,7 @@ data Output
 makePrisms ''Output
 
 data ModelState = ModelState
-    { coreState :: Core.World
+    { coreState :: Engine.World
     , count     :: Int
     , lastCmd   :: String
     }
@@ -53,10 +53,10 @@ type ModelM = Pipe Input Output (State ModelState)
 data Token = TokenCmd String | TokenCount Int
 
 mkModelState :: ModelState
-mkModelState = ModelState Core.mkWorld 0 ""
+mkModelState = ModelState Engine.mkWorld 0 ""
 
-runCore :: Core.ModelM a -> ModelM a
-runCore = lift . zoom _coreState
+runEngine :: Engine.EngineM a -> ModelM a
+runEngine = lift . zoom _coreState
 
 displayLongMessage :: [String] -> ModelM ()
 displayLongMessage msgs =
@@ -66,14 +66,14 @@ displayLongMessage msgs =
 
 displayOutput :: ModelM ()
 displayOutput = do
-    msg <- runCore Core.lastMessage
-    objs <- runCore Core.changedSprites
+    msg <- runEngine Engine.lastMessage
+    objs <- runEngine Engine.changedSprites
     case splitOn "\n" msg of
         []      -> yield (DisplayDelta "" objs)
         [_]     -> yield (DisplayDelta msg objs)
         msgs    -> do
             displayLongMessage msgs
-            runCore Core.allSprites >>= yield . DisplayFull ""
+            runEngine Engine.allSprites >>= yield . DisplayFull ""
 
 getToken :: ModelM Token
 getToken
@@ -93,7 +93,7 @@ getToken
 
 model :: ModelM ()
 model = do
-    runCore Core.init
+    runEngine Engine.init
     displayOutput
     go
   where
@@ -103,8 +103,8 @@ model = do
         (TokenCmd c)        -> do
                                     n <- gets (max 1 . count)
                                     replicateM_ n $ do
-                                        runCore Core.step
-                                        runCore $ Core.command c
+                                        runEngine Engine.step
+                                        runEngine $ Engine.command c
                                         displayOutput
                                     when (c `notElem` ["h", "j", "k", "l"])
                                         (_lastCmd .= c)
@@ -116,7 +116,7 @@ model = do
                                     go
     go = getToken >>= runToken
 
-_unused1 :: ModelState -> Core.World
+_unused1 :: ModelState -> Engine.World
 _unused1 = coreState
 
 _unused2 :: ModelState -> String

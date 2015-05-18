@@ -2,7 +2,9 @@
 {-# LANGUAGE GADTs              #-}
 {-# LANGUAGE RankNTypes         #-}
 {-# LANGUAGE StandaloneDeriving #-}
-module Frontier.Core.Feature
+{-# LANGUAGE LambdaCase         #-}
+{-# LANGUAGE RecordWildCards    #-}
+module Frontier.Feature
     (LevelSource
     ,Env(..)
     ,Feature(..)
@@ -11,6 +13,8 @@ module Frontier.Core.Feature
     ,Witness(..)
     ,Tag(..)
     ,Action(..)
+    ,moveToDir
+    ,noCollision
     ) where
 
 import Prelude hiding (init)
@@ -98,3 +102,21 @@ instance Monoid (Feature w) where
         , step          = step f1 <> step f2
         , loadLevel     = \x -> loadLevel f1 x <> loadLevel f2 x
         }
+
+moveToDir :: Env w e -> Char -> e Object -> e Object
+moveToDir Env{..} = \case
+            'h' -> _position._1 -~ 1
+            'j' -> _position._2 +~ 1
+            'k' -> _position._2 -~ 1
+            'l' -> _position._1 +~ 1
+            _   -> id
+
+noCollision :: Env w e -> e Object -> [e Object] -> Bool
+noCollision Env{..} obj objs =
+        and
+            [ position obj /= position obj'
+            | obj' <- objs
+            , not (obj `is` obj')
+            ]
+    where
+        position = view _position
