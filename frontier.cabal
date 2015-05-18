@@ -32,7 +32,7 @@ executable frontier
   ghc-options:     -Wall -threaded -O3
   other-modules:   
                    Frontier.Prelude,
-                   Frontier.Core,
+                   Frontier.Engine,
                    Frontier.Feature,
                    Frontier.Feature.Base,
                    Frontier.Feature.Building,

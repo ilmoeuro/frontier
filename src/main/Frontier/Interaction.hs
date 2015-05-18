@@ -1,7 +1,10 @@
+{-# OPTIONS_GHC -fno-warn-missing-signatures    #-}
+
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE LambdaCase       #-}
 {-# LANGUAGE MultiWayIf       #-}
 {-# LANGUAGE TemplateHaskell  #-}
+{-# LANGUAGE RecordWildCards  #-}
 module Frontier.Interaction
     (Sprite
     ,Input(..)
@@ -18,11 +21,13 @@ import Control.Lens
 import Control.Monad
 import Control.Monad.State.Strict
 import Data.Char
-import Data.List
+import Data.List hiding (init)
 import Data.List.Split
 import qualified Frontier.Engine as Engine
 import Pipes
 import Prelude hiding (init)
+
+Engine.Engine{..} = Engine.engine
 
 type Sprite = ((Int, Int), Char)
 
@@ -66,14 +71,14 @@ displayLongMessage msgs =
 
 displayOutput :: ModelM ()
 displayOutput = do
-    msg <- runEngine Engine.lastMessage
-    objs <- runEngine Engine.changedSprites
+    msg <- runEngine lastMessage
+    objs <- runEngine changedSprites
     case splitOn "\n" msg of
         []      -> yield (DisplayDelta "" objs)
         [_]     -> yield (DisplayDelta msg objs)
         msgs    -> do
             displayLongMessage msgs
-            runEngine Engine.allSprites >>= yield . DisplayFull ""
+            runEngine allSprites >>= yield . DisplayFull ""
 
 getToken :: ModelM Token
 getToken
@@ -93,7 +98,7 @@ getToken
 
 model :: ModelM ()
 model = do
-    runEngine Engine.init
+    runEngine init
     displayOutput
     go
   where
@@ -103,8 +108,8 @@ model = do
         (TokenCmd c)        -> do
                                     n <- gets (max 1 . count)
                                     replicateM_ n $ do
-                                        runEngine Engine.step
-                                        runEngine $ Engine.command c
+                                        runEngine step
+                                        runEngine $ command c
                                         displayOutput
                                     when (c `notElem` ["h", "j", "k", "l"])
                                         (_lastCmd .= c)

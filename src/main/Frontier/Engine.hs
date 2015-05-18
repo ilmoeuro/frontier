@@ -14,22 +14,14 @@ module Frontier.Engine
     ,Entity(..)
     ,World(..)
     ,mkWorld
-    ,lastMessage
-    ,allSprites
-    ,changedSprites
-    ,init
-    ,command
-    ,step
+    ,Engine(..)
+    ,engine
 #else
      EngineM
     ,World()
     ,mkWorld
-    ,lastMessage
-    ,allSprites
-    ,changedSprites
-    ,init
-    ,command
-    ,step
+    ,Engine(..)
+    ,engine
 #endif
     ) where
 
@@ -75,6 +67,15 @@ data World = World
     ,initParam          :: Int
     ,messages           :: [String]
     ,dirtyTiles         :: [(Int, Int)]
+    }
+
+data Engine = Engine
+    {lastMessage        :: EngineM String
+    ,allSprites         :: EngineM [Sprite]
+    ,changedSprites     :: EngineM [Sprite]
+    ,init               :: EngineM ()
+    ,command            :: String -> EngineM ()
+    ,step               :: EngineM ()
     }
 
 makeLensesFor
@@ -148,42 +149,42 @@ _entities Item = _items
 env :: Env World Entity
 env = Env {..} where
 
-dirtify :: Witness b -> Entity b -> World -> World
-dirtify wit entity = case wit of
-            Object -> _dirtyTiles %~ (entity ^. _position :)
-            _      -> id
+    dirtify :: Witness b -> Entity b -> World -> World
+    dirtify wit entity = case wit of
+                Object -> _dirtyTiles %~ (entity ^. _position :)
+                _      -> id
 
-create :: Witness b -> Tag b -> (Entity b -> Entity b) -> Action World
-create wit s fn
-    = Action $ \w@World{lastUid} ->
-        let
-          entity = fn . seed wit lastUid $ s
-        in
-            (_entities wit %~ (++ [entity]))
-          . (_lastUid +~ 1)
-          . dirtify wit entity
-          $ w
+    create :: Witness b -> Tag b -> (Entity b -> Entity b) -> Action World
+    create wit s fn
+        = Action $ \w@World{lastUid} ->
+            let
+              entity = fn . seed wit lastUid $ s
+            in
+                (_entities wit %~ (++ [entity]))
+              . (_lastUid +~ 1)
+              . dirtify wit entity
+              $ w
 
-withAll :: Witness b -> ([Entity b] -> Action World) -> Action World
-withAll Object act = Action $ \w -> runAction (act (objects w)) w
-withAll Item   act = Action $ \w -> runAction (act (items w)) w
+    withAll :: Witness b -> ([Entity b] -> Action World) -> Action World
+    withAll Object act = Action $ \w -> runAction (act (objects w)) w
+    withAll Item   act = Action $ \w -> runAction (act (items w)) w
 
-modify :: Witness b -> (Entity b -> Entity b) -> Entity b -> Action World
-modify wit fn e = Action
-                $ dirtify wit e
-                . dirtify wit (fn e)
-                . (_entities wit . each . filtered (`is` e) %~ fn)
+    modify :: Witness b -> (Entity b -> Entity b) -> Entity b -> Action World
+    modify wit fn e = Action
+                    $ dirtify wit e
+                    . dirtify wit (fn e)
+                    . (_entities wit . each . filtered (`is` e) %~ fn)
 
-destroy :: Witness b -> Entity b -> Action World
-destroy wit e = Action
-              $ dirtify wit e
-              . (_entities wit %~ filter (not . (`is` e)))
+    destroy :: Witness b -> Entity b -> Action World
+    destroy wit e = Action
+                  $ dirtify wit e
+                  . (_entities wit %~ filter (not . (`is` e)))
 
-is :: Entity b -> Entity b -> Bool
-is = (==) `on` uid
+    is :: Entity b -> Entity b -> Bool
+    is = (==) `on` uid
 
-withInitParam :: (Int -> Action World) -> Action World
-withInitParam act = Action $ \w -> runAction (act (initParam w)) w
+    withInitParam :: (Int -> Action World) -> Action World
+    withInitParam act = Action $ \w -> runAction (act (initParam w)) w
 
     message :: ([String] -> [String]) -> Action World
     message = Action <$> (_messages %~)
@@ -204,49 +205,52 @@ feature :: Feature World
 feature =  Base.feature env (_components._base)
         <> Building.feature env (_components._building)
 
-lastMessage :: EngineM String
-lastMessage = (\x -> if any ('\n' `elem`) x
-                then intercalate "" x
-                else intercalate "; " x)
-            .   messages
-            <$> St.get
+engine :: Engine
+engine = Engine{..} where
 
-allSprites :: EngineM [Sprite]
-allSprites = map toSprite
-           . sortBy (compare `on` (^. _meta . __zIndex))
-           . objects
-           <$> St.get
-    where toSprite =
-                 (,)
-                 <$> view (_meta . __position)
-                 <*> view (_meta . __symbol)
+    lastMessage :: EngineM String
+    lastMessage = (\x -> if any ('\n' `elem`) x
+                    then intercalate "" x
+                    else intercalate "; " x)
+                .   messages
+                <$> St.get
 
-changedSprites :: EngineM [Sprite]
-changedSprites = do
-        result <- (++) <$> blanks <*> sprites
-        St.modify $ _dirtyTiles .~ []
-        return result
-    where
-        blanks   = map (,' ')
-                 . dirtyTiles
-                 <$> St.get
-        sprites  = map toSprite
-                 . sortBy (compare `on` (^. _meta . __zIndex))
-                 . dirtySprites
-                 <$> St.get
-        dirtySprites World{dirtyTiles, objects}
-                 = filter (view (_meta . __position . to (`elem` dirtyTiles)))
-                   objects
-        toSprite =
-                 (,)
-                 <$> view (_meta . __position)
-                 <*> view (_meta . __symbol)
+    allSprites :: EngineM [Sprite]
+    allSprites = map toSprite
+               . sortBy (compare `on` (^. _meta . __zIndex))
+               . objects
+               <$> St.get
+        where toSprite =
+                     (,)
+                     <$> view (_meta . __position)
+                     <*> view (_meta . __symbol)
 
-init :: EngineM ()
-init = St.modify . runAction $ Ftr.init feature
+    changedSprites :: EngineM [Sprite]
+    changedSprites = do
+            result <- (++) <$> blanks <*> sprites
+            St.modify $ _dirtyTiles .~ []
+            return result
+        where
+            blanks   = map (,' ')
+                     . dirtyTiles
+                     <$> St.get
+            sprites  = map toSprite
+                     . sortBy (compare `on` (^. _meta . __zIndex))
+                     . dirtySprites
+                     <$> St.get
+            dirtySprites World{dirtyTiles, objects}
+                     = filter (view (_meta . __position . to (`elem` dirtyTiles)))
+                       objects
+            toSprite =
+                     (,)
+                     <$> view (_meta . __position)
+                     <*> view (_meta . __symbol)
 
-command :: String -> EngineM ()
-command = St.modify . runAction . Ftr.command feature
+    init :: EngineM ()
+    init = St.modify . runAction $ Ftr.init feature
 
-step :: EngineM ()
-step = St.modify . runAction $ Ftr.step feature
+    command :: String -> EngineM ()
+    command = St.modify . runAction . Ftr.command feature
+
+    step :: EngineM ()
+    step = St.modify . runAction $ Ftr.step feature
