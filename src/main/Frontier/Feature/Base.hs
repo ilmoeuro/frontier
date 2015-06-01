@@ -5,18 +5,25 @@
 {-# LANGUAGE RecordWildCards     #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE StandaloneDeriving  #-}
+{-# LANGUAGE OverloadedStrings   #-}
+{-# LANGUAGE TupleSections       #-}
 module Frontier.Feature.Base
     (Component()
     ,fromTag
     ,feature
     ) where
 
-import Control.Lens
+import Prelude hiding (init)
+import Control.Applicative
+import Data.Char
 import Data.Monoid
+import Data.Maybe
 import Data.List hiding (init)
+import Control.Lens
+import qualified Data.Text as Tx
+import Text.Regex.Applicative
 import Frontier.Feature
 import Frontier.Prelude
-import Prelude hiding (init)
 
 data Component a where
     PlayerCharacter             :: Component Object
@@ -47,6 +54,7 @@ _Unknown = prism'
         _               -> Nothing)
 
 fromTag :: Tag b -> Component b
+
 fromTag PlayerCharacterTag      =  PlayerCharacter
 fromTag (WorldItemTag x)        =  WorldItem x
 fromTag _                       =  Unknown
@@ -88,32 +96,8 @@ feature :: forall e w. Env w e
 feature env@Env{..} _com = Feature {..} where
 
     init :: Action w
-    init = mconcat . mconcat $
-         [  [create
-                Object
-                PlayerCharacterTag
-                ((_position     .~ (1,1))
-                .(_symbol       .~ '@')
-                .(_zIndex       .~ 1000))
-            ]
-         ,  [create Object WallTag ((_position .~ (i,0))
-                                   .(_symbol   .~ '#'))
-            | i <- [0..79]
-            ]
-         ,  [create Object WallTag ((_position .~ (i,22))
-                                   .(_symbol   .~ '#'))
-            | i <- [0..79]
-            ]
-         ,  [create Object WallTag ((_position .~ (0,i))
-                                   .(_symbol   .~ '#'))
-            | i <- [1..21]
-            ]
-         ,  [create Object WallTag ((_position .~ (79,i))
-                                   .(_symbol   .~ '#'))
-            | i <- [1..21]
-            ]
-         ,  [message (++ [unlines welcomeMessage])]
-         ]
+    init = message (++ [unlines welcomeMessage])
+
     command :: String -> Action w
     -- Help screen
     command "?" = message (++ [unlines welcomeMessage])
@@ -156,11 +140,11 @@ feature env@Env{..} _com = Feature {..} where
             [  destroy Object obj
             <> create Item (getItemTag obj) id
             <> message (++ ["Picked up " ++ (name . getItemTag) obj ++ "."])
-            | obj <- objs
-            , pc <- objs
-            , (obj ^# _com) `matches` _WorldItem
-            , (pc ^# _com) `matches` _PlayerCharacter
-            , pc^._position == obj^._position
+            |  obj <- objs
+            ,  pc <- objs
+            ,  (obj ^# _com) `matches` _WorldItem
+            ,  (pc ^# _com) `matches` _PlayerCharacter
+            ,  pc^._position == obj^._position
             ]
       where
         getItemTag obj | WorldItem s <- obj ^# _com = s
@@ -173,4 +157,41 @@ feature env@Env{..} _com = Feature {..} where
         message (const [])
 
     loadLevel :: LevelSource -> Action w
-    loadLevel = const mempty
+    loadLevel = fromMaybe mempty . match file . Tx.words where
+        file =  
+                mconcat
+            <$> many item
+        item = 
+                object "Wall" OpaqueTag '#'
+            <|> object "PlayerCharacter" PlayerCharacterTag '@'
+            <|> unknown
+        unknown =
+                mempty 
+                    <$ some (psym (/= ";"))
+                    <* sym ";"
+        object identifier tag sy =
+                make tag sy
+                    <$  sym identifier
+                    <*> range
+                    <*> range
+                    <*  sym ";"
+        range =
+                (,)
+                    <$> number
+                    <*  sym ".."
+                    <*> number
+            <|> (\x -> (x,x))
+                    <$> number
+        number =
+                (read . Tx.unpack) <$> psym (Tx.all isDigit)
+        make' tag sy x y =
+                create 
+                    Object
+                    tag 
+                    ( (_position .~ (x,y)) 
+                    . (_symbol .~ sy))
+        make tag sy (x1,x2) (y1,y2) =
+                mconcat [ make' tag sy x y
+                        | y <- [y1..y2]
+                        , x <- [x1..x2]
+                        ]

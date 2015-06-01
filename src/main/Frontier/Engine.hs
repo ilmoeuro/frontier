@@ -76,6 +76,7 @@ data Engine = Engine
     ,init               :: EngineM ()
     ,command            :: String -> EngineM ()
     ,step               :: EngineM ()
+    ,loadLevel          :: LevelSource -> EngineM ()
     }
 
 makeLensesFor
@@ -254,3 +255,6 @@ engine = Engine{..} where
 
     step :: EngineM ()
     step = St.modify . runAction $ Ftr.step feature
+
+    loadLevel :: LevelSource -> EngineM ()
+    loadLevel = St.modify . runAction . Ftr.loadLevel feature

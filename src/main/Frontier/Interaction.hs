@@ -17,15 +17,16 @@ module Frontier.Interaction
     ,model
     ) where
 
+import Prelude hiding (init)
 import Control.Lens
 import Control.Monad
 import Control.Monad.State.Strict
 import Data.Char
-import Data.List hiding (init)
 import Data.List.Split
-import qualified Frontier.Engine as Engine
 import Pipes
-import Prelude hiding (init)
+import Data.Text.Encoding
+import Data.FileEmbed
+import qualified Frontier.Engine as Engine
 
 Engine.Engine{..} = Engine.engine
 
@@ -99,6 +100,7 @@ getToken
 model :: ModelM ()
 model = do
     runEngine init
+    runEngine . loadLevel . decodeUtf8 $ $(embedFile "src/data/level.fro")
     displayOutput
     go
   where

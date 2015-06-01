@@ -17,11 +17,12 @@ module Frontier.Feature
     ,noCollision
     ) where
 
+import Data.Text (Text)
 import Prelude hiding (init)
 import Control.Lens
 import Data.Monoid
 
-type LevelSource = String
+type LevelSource = Text
 type InitParam = Int
 
 data Item

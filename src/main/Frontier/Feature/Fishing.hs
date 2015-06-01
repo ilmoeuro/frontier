@@ -4,38 +4,30 @@
 {-# LANGUAGE RecordWildCards     #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE StandaloneDeriving  #-}
-{-# LANGUAGE OverloadedStrings   #-}
-module Frontier.Feature.Building
+module Frontier.Feature.Fishing
     (Component()
     ,fromTag
     ,feature
     ) where
 
-import Prelude hiding (init)
 import Data.Monoid
-import Data.Maybe
-import Data.Char
-import qualified Data.Text as Tx
+import Data.Foldable (foldMap)
 import Control.Lens hiding (contains)
-import Text.Regex.Applicative
 import Frontier.Feature
 import Frontier.Prelude
+import Prelude hiding (init)
+import System.Random
 
 data Component a where
     PlayerCharacter             :: Component Object
-    Tree                        :: Component Object
-    Hammer                      :: Component Item
-    Axe                         :: Component Item
-    Lumber                      :: Component Item
+    Water                       :: Component Object
+    Boat                        :: Component Item
     Unknown                     :: Component a
 
 deriving instance Eq (Component a)
 
 fromTag :: Tag b -> Component b
 fromTag PlayerCharacterTag     =  PlayerCharacter
-fromTag HammerTag              =  Hammer
-fromTag AxeTag                 =  Axe
-fromTag LumberTag              =  Lumber
 fromTag _                      =  Unknown
 
 welcomeMessage :: [String]
@@ -53,12 +45,33 @@ feature env@Env{..} _com = Feature {..} where
     _com' = cloneLens _com
 
     init :: Action w
-    init = mempty
+    init =  withInitParam $ \initParam ->
+            message (++ [unlines welcomeMessage])
+         <> create
+            Object
+            (WorldItemTag HammerTag)
+            ((_position     .~ (5,5))
+            .(_symbol       .~ '/'))
+         <> create
+            Object
+            (WorldItemTag AxeTag)
+            ((_position     .~ (9,7))
+            .(_symbol       .~ '/'))
+         <> (foldMap mkTree
+           . take 100
+           $ zip (randoms . mkStdGen $ initParam)
+                 (randoms . mkStdGen . (+1) $ initParam))
+      where
+        mkTree (x', y') =
+            create Object OpaqueTag
+                ((_position     .~ (1 + abs x' `rem` 78, 1 + abs y' `rem` 21))
+                .(_symbol       .~ '^')
+                .(_com          #~ Tree))
 
     command :: String -> Action w
     -- Help message
     command "?" = message (++ [unlines welcomeMessage])
-    -- Building
+    -- Fishing
     command c | c `elem` ["Bh", "Bj", "Bk", "Bl"] = build where
         filterByComponent p = filter (\e -> p (e ^# _com))
         move = case c of
@@ -101,37 +114,4 @@ feature env@Env{..} _com = Feature {..} where
     step = mempty
 
     loadLevel :: LevelSource -> Action w
-    loadLevel = fromMaybe mempty . match file . Tx.words where
-        file =  
-                mconcat
-            <$> many item
-        item = 
-                make (WorldItemTag HammerTag) '/'
-                    <$  sym "Hammer"
-                    <*> number
-                    <*> number
-                    <*  sym ";"
-            <|> make (WorldItemTag AxeTag) '/'
-                    <$  sym "Axe"
-                    <*> number
-                    <*> number
-                    <*  sym ";"
-            <|> make' OpaqueTag '#' (_com' .~ Tree)
-                    <$  sym "Tree"
-                    <*> number
-                    <*> number
-                    <*  sym ";"
-            <|> mempty 
-                    <$ some (psym (/= ";"))
-                    <* sym ";"
-        number =
-            (read . Tx.unpack) <$> psym (Tx.all isDigit)
-        make tag sy =
-            make' tag sy id
-        make' tag sy f x y =
-            create 
-                Object
-                tag 
-                ( (_position .~ (x,y)) 
-                . (_symbol .~ sy)
-                . f)
+    loadLevel = const mempty
