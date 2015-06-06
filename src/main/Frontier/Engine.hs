@@ -37,6 +37,7 @@ import Frontier.Feature hiding (init, command, step)
 import qualified Frontier.Feature as Ftr
 import qualified Frontier.Feature.Base as Base
 import qualified Frontier.Feature.Building as Building
+import qualified Frontier.Feature.Fishing as Fishing
 
 type Id = Int
 
@@ -47,6 +48,7 @@ type EngineM = State World
 data Components b = Components
     {base               :: Base.Component b
     ,building           :: Building.Component b
+    ,fishing            :: Fishing.Component b
     }
 
 data Meta b where
@@ -82,6 +84,7 @@ data Engine = Engine
 makeLensesFor
     [("base"                ,"_base")
     ,("building"            ,"_building")
+    ,("fishing"             ,"_fishing")
     ]
     ''Components
 
@@ -127,6 +130,7 @@ seed wit uid s =
         {components = Components
             {base = Base.fromTag s
             ,building = Building.fromTag s
+            ,fishing = Fishing.fromTag s
             }
         ,meta = mkMeta wit
         ,entityTag = s
@@ -205,6 +209,7 @@ env = Env {..} where
 feature :: Feature World
 feature =  Base.feature env (_components._base)
         <> Building.feature env (_components._building)
+        <> Fishing.feature env (_components._fishing)
 
 engine :: Engine
 engine = Engine{..} where

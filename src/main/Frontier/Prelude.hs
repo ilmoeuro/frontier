@@ -2,23 +2,17 @@
 module Frontier.Prelude
     ((.:)
     ,matches
-    ,when'
     ,itemHandles
     ,combineEquals
     ) where
 
 import Control.Lens
-import Data.Monoid
 
 (.:) :: (c -> d) -> (a -> b -> c) -> a -> b -> d
 (.:) = (.).(.)
 
 matches :: s -> APrism s t a b -> Bool
 matches = not .: flip isn't
-
-when' :: Monoid a => Bool -> a -> a
-when' True  x = x
-when' False _ = mempty
 
 itemHandles :: String
 itemHandles = ['a'..'z'] ++ ['A'..'Z'] ++ ['0'..'9'] ++ ['!' .. '/']

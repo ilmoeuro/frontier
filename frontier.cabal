@@ -14,6 +14,7 @@ executable frontier
                    bytestring >= 0.10 && < 0.11,
                    utf8-string >= 0.3 && < 0.4,
                    file-embed >= 0.0.8 && < 0.1,
+                   bool-extras >= 0.4.0 && < 0.5,
                    regex-applicative >= 0.3 && < 0.4,
                    lens >= 4.7 && < 4.8,
                    transformers >= 0.3.0.0 && < 0.4,

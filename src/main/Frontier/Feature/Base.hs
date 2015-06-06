@@ -13,17 +13,16 @@ module Frontier.Feature.Base
     ,feature
     ) where
 
-import Prelude hiding (init)
+import Prelude hiding (init, lex)
 import Control.Applicative
-import Data.Char
 import Data.Monoid
 import Data.Maybe
 import Data.List hiding (init)
 import Control.Lens
-import qualified Data.Text as Tx
 import Text.Regex.Applicative
 import Frontier.Feature
 import Frontier.Prelude
+import Frontier.Fro
 
 data Component a where
     PlayerCharacter             :: Component Object
@@ -157,41 +156,37 @@ feature env@Env{..} _com = Feature {..} where
         message (const [])
 
     loadLevel :: LevelSource -> Action w
-    loadLevel = fromMaybe mempty . match file . Tx.words where
+    loadLevel = fromMaybe mempty . match file . lex where
         file =  
                 mconcat
             <$> many item
         item = 
-                object "Wall" OpaqueTag '#'
-            <|> object "PlayerCharacter" PlayerCharacterTag '@'
+                object 
+                    "Wall" 
+                    OpaqueTag 
+                    '#'
+                    id
+            <|> object
+                    "PlayerCharacter"
+                    PlayerCharacterTag 
+                    '@'
+                    (_zIndex .~ 1000)
             <|> unknown
-        unknown =
-                mempty 
-                    <$ some (psym (/= ";"))
-                    <* sym ";"
-        object identifier tag sy =
-                make tag sy
+        object identifier tag sy f =
+                make tag sy f
                     <$  sym identifier
                     <*> range
                     <*> range
                     <*  sym ";"
-        range =
-                (,)
-                    <$> number
-                    <*  sym ".."
-                    <*> number
-            <|> (\x -> (x,x))
-                    <$> number
-        number =
-                (read . Tx.unpack) <$> psym (Tx.all isDigit)
-        make' tag sy x y =
+        make' tag sy f x y =
                 create 
                     Object
                     tag 
                     ( (_position .~ (x,y)) 
-                    . (_symbol .~ sy))
-        make tag sy (x1,x2) (y1,y2) =
-                mconcat [ make' tag sy x y
+                    . (_symbol .~ sy)
+                    . f)
+        make tag sy f (x1,x2) (y1,y2) =
+                mconcat [ make' tag sy f x y
                         | y <- [y1..y2]
                         , x <- [x1..x2]
                         ]

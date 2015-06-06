@@ -11,15 +11,14 @@ module Frontier.Feature.Building
     ,feature
     ) where
 
-import Prelude hiding (init)
+import Prelude hiding (init, lex)
 import Data.Monoid
 import Data.Maybe
-import Data.Char
-import qualified Data.Text as Tx
+import Data.Bool.Extras
 import Control.Lens hiding (contains)
 import Text.Regex.Applicative
 import Frontier.Feature
-import Frontier.Prelude
+import Frontier.Fro
 
 data Component a where
     PlayerCharacter             :: Component Object
@@ -74,8 +73,8 @@ feature env@Env{..} _com = Feature {..} where
             , noCollision env (move obj) objs
             ]
         build = withAll Item $ \items ->
-            when' (not . null . filterByComponent (== Hammer) $ items)
-            $ case filterByComponent (== Lumber) items of
+            flip mwhen (not . null . filterByComponent (== Hammer) $ items) $
+            case filterByComponent (== Lumber) items of
                 (lumber:_)  ->
                     destroy Item lumber
                     <> createWall
@@ -101,37 +100,37 @@ feature env@Env{..} _com = Feature {..} where
     step = mempty
 
     loadLevel :: LevelSource -> Action w
-    loadLevel = fromMaybe mempty . match file . Tx.words where
+    loadLevel = fromMaybe mempty . match file . lex where
         file =  
                 mconcat
             <$> many item
         item = 
                 make (WorldItemTag HammerTag) '/'
                     <$  sym "Hammer"
-                    <*> number
-                    <*> number
+                    <*> range
+                    <*> range
                     <*  sym ";"
             <|> make (WorldItemTag AxeTag) '/'
                     <$  sym "Axe"
-                    <*> number
-                    <*> number
+                    <*> range
+                    <*> range
                     <*  sym ";"
-            <|> make' OpaqueTag '#' (_com' .~ Tree)
+            <|> make' OpaqueTag '^' (_com' .~ Tree)
                     <$  sym "Tree"
-                    <*> number
-                    <*> number
+                    <*> range
+                    <*> range
                     <*  sym ";"
-            <|> mempty 
-                    <$ some (psym (/= ";"))
-                    <* sym ";"
-        number =
-            (read . Tx.unpack) <$> psym (Tx.all isDigit)
+            <|> unknown
         make tag sy =
             make' tag sy id
-        make' tag sy f x y =
-            create 
-                Object
-                tag 
-                ( (_position .~ (x,y)) 
-                . (_symbol .~ sy)
-                . f)
+        make' tag sy f (x1,x2) (y1,y2) =
+            mconcat
+                [create 
+                    Object
+                    tag 
+                    ( (_position .~ (x,y)) 
+                    . (_symbol .~ sy)
+                    . f)
+                | x <- [x1..x2]
+                , y <- [y1..y2]
+                ]
